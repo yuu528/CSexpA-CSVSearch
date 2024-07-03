@@ -3,7 +3,7 @@ C++=g++
 LD=g++
 CFLAGS=-c -Wall -pedantic-errors -Ofast
 LDFLAGS=-pthread
-OBJECTS=./src/main.o ./src/includes/socketutil.o
+OBJECTS=./src/csvsearch.o ./src/includes/socketutil.o ./src/includes/csvloader.o ./src/includes/stringutil.o
 EXECUTABLE=csvsearch.out
 
 all: $(EXECUTABLE)
