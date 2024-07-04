@@ -87,8 +87,9 @@ void *thread_func(void *param) {
 
 int main(int argc, char *argv[]) {
   /* Init on-memory database from csvs */
-  if (argc < 3) {
-    printf("Usage: %s <geotag.csv path> <tag.csv path>\n", argv[0]);
+  if (argc < 2) {
+    printf("Usage: %s <csv path>\n", argv[0]);
+    printf("CSV file must be merged and sorted by date.\n");
     return 1;
   }
 
@@ -97,24 +98,40 @@ int main(int argc, char *argv[]) {
     tag_db_g[i] = NULL;
   }
 
-  loadTag(argv[2], tag_db_g);
+  loadCSV(argv[1], tag_db_g);
 
   /* Debug: Print tag_db_g */
 #ifdef DEBUG
-  for (uint_fast8_t i = 0; i < MAX_TAG_LEN; i++) {
+  printf("DB loaded.\n");
+  for (int i = 0; i < MAX_TAG_LEN; i++) {
     tag_t *tag = tag_db_g[i];
     while (tag != NULL) {
-      printf("tag_db_g[%d]: %s\n", i, tag->tag);
+      printf("tag_db_g[%d] %" PRIuFAST8 ": %s\n", i, tag->geotag_count,
+             tag->tag);
 
-      geotag_t *geotag = tag_db_g[i]->geotag;
+      geotag_t *geotag = tag->geotag;
       while (geotag != NULL) {
-        printf("  id: %" PRIuFAST32 "\n", geotag->id);
+        /* clang-format off */
+      printf(
+        "  %" PRIuFAST32
+        ", %" PRIuFAST32 "-%" PRIuFAST8 "-%" PRIuFAST8
+        " %" PRIuFAST8 ":%" PRIuFAST8 ":%" PRIuFAST8
+        ", %f, %f, "
+        URL_FORMAT " \n",
+        geotag->id,
+        geotag->year, geotag->month, geotag->day,
+        geotag->hour, geotag->minute, geotag->second,
+        geotag->lat, geotag->lon,
+        geotag->server_id, geotag->url_id1, geotag->id, geotag->url_id2
+      );
+        /* clang-format on */
         geotag = geotag->next;
       }
 
       tag = tag->next;
     }
   }
+  printf("DB output finished.\n");
 #endif
 
   /* Start server */

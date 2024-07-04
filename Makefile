@@ -1,7 +1,8 @@
 CC=gcc
 C++=g++
 LD=g++
-CFLAGS=-c -Wall -pedantic-errors -Ofast
+# CFLAGS=-c -Wall -pedantic-errors -Ofast
+CFLAGS=-c -Wall -pedantic-errors -O0 -g
 LDFLAGS=-pthread
 OBJECTS=./src/csvsearch.o ./src/includes/socketutil.o ./src/includes/csvloader.o ./src/includes/stringutil.o
 EXECUTABLE=csvsearch.out
@@ -18,5 +19,5 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	-rm -f ${EXECUTABLE} ${EXECUTABLE}.exe ${OBJECTS}
+	-rm -f ${EXECUTABLE} ${EXECUTABLE}.exe ${OBJECTS} core
 

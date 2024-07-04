@@ -2,14 +2,21 @@
 
 #define _H_TAGTYPES_
 
+#include <inttypes.h>
 #include <stdint.h>
+
+/* clang-format off */
+#define URL_FORMAT "http://farm%" PRIuFAST8 ".static.flickr.com/%" PRIuFAST16 "/%" PRIuFAST32 "_%s.jpg"
+/* clang-format on */
+
+#define URL_ID2_LEN 10
 
 typedef struct geotag_struct geotag_t;
 struct geotag_struct {
   uint_fast32_t id;
 
   /* Date and time */
-  uint_fast8_t year;
+  uint_fast16_t year;
   uint_fast8_t month;
   uint_fast8_t day;
 
