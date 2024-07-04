@@ -6,9 +6,10 @@
 
 #include <stdint.h>
 
-// #define DEBUG
+#define DEBUG
 /* More verbose debug */
 // #define DEBUG_V
+// #define DEBUG_VV
 
 /* Maximum length of a line in the CSV file */
 #define FILE_BUFFER_SIZE 512

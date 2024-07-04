@@ -14,6 +14,10 @@ uint_fast8_t loadCSV(char *filename, tag_t *tag_db[]) {
   char *p_id, *p_tag, *psave;
   uint_fast8_t tag_len;
 
+#ifdef DEBUG
+  unsigned long line = 0;
+#endif
+
   fp = fopen(filename, "r");
   if (fp == NULL) {
     fprintf(stderr, MSG_ERR_FILE_OPEN);
@@ -21,6 +25,10 @@ uint_fast8_t loadCSV(char *filename, tag_t *tag_db[]) {
   }
 
   while (fgets(buf, FILE_BUFFER_SIZE, fp) != NULL) {
+#ifdef DEBUG
+    printf("\rline: %lu", ++line);
+#endif
+
     p_id = strtok_r(buf, CSV_DELIM, &psave);
 
     if (*psave == ',') {
@@ -32,17 +40,17 @@ uint_fast8_t loadCSV(char *filename, tag_t *tag_db[]) {
     tag_len = strlen(p_tag);
     if (tag_db[tag_len] == NULL) {
 
-#ifdef DEBUG
+#ifdef DEBUG_V
       printf("\nCreate new tag\n");
 #endif
 
       tag_db[tag_len] = create_new_tag(p_tag, tag_len, p_id, psave);
 
-#ifdef DEBUG
+#ifdef DEBUG_V
       printf("tagname: %s\n", tag_db[tag_len]->tag);
 #endif
     } else {
-#ifdef DEBUG
+#ifdef DEBUG_V
       printf("\nExisting tag\n");
 #endif
       /* Exising tag length */
@@ -118,7 +126,7 @@ geotag_t *create_new_geotag(char *id, char *psave) {
   geotag->lon = atof(strtok_r(NULL, CSV_DELIM, &psave));
   parse_url(strtok_r(NULL, CSV_DELIM, &psave), geotag);
 
-#ifdef DEBUG_V
+#ifdef DEBUG_VV
   printf("id: %" PRIuFAST32 "\n", geotag->id);
   printf("lat, lon: %f, %f\n", geotag->lat, geotag->lon);
 #endif
@@ -136,7 +144,7 @@ void parse_date(char *str, geotag_t *geotag) {
   geotag->month = atoi_uint_fast8(strtok_r(NULL, DATE_DELIM, &psave2));
   geotag->day = atoi_uint_fast8(strtok_r(NULL, DATE_DELIM, &psave2));
 
-#ifdef DEBUG_V
+#ifdef DEBUG_VV
   printf("year, month, day: %" PRIuFAST16 ", %" PRIuFAST8 ", %" PRIuFAST8 "\n",
          geotag->year, geotag->month, geotag->day);
 #endif
@@ -148,7 +156,7 @@ void parse_date(char *str, geotag_t *geotag) {
   geotag->minute = atoi_uint_fast8(strtok_r(NULL, TIME_DELIM, &psave2));
   geotag->second = atoi_uint_fast8(strtok_r(NULL, TIME_DELIM, &psave2));
 
-#ifdef DEBUG_V
+#ifdef DEBUG_VV
   printf("hour, minute, second: %" PRIuFAST8 ", %" PRIuFAST8 ", %" PRIuFAST8
          "\n",
          geotag->hour, geotag->minute, geotag->second);
@@ -163,7 +171,7 @@ void parse_url(char *str, geotag_t *geotag) {
   SKIP_STR_TO_NUMBER(p);
   geotag->server_id = *p - '0';
 
-#ifdef DEBUG_V
+#ifdef DEBUG_VV
   printf("server_id: %" PRIuFAST8 "\n", geotag->server_id);
 #endif
 
@@ -176,7 +184,7 @@ void parse_url(char *str, geotag_t *geotag) {
   /* restore '/' */
   *p_slash = '/';
 
-#ifdef DEBUG_V
+#ifdef DEBUG_VV
   printf("url_id1: %" PRIuFAST32 "\n", geotag->url_id1);
 #endif
 
@@ -199,7 +207,7 @@ void parse_url(char *str, geotag_t *geotag) {
   }
   strncpy(geotag->url_id2, p, URL_ID2_LEN);
 
-#ifdef DEBUG_V
+#ifdef DEBUG_VV
   printf("url_id2: %" PRIuFAST64 "\n", geotag->url_id2);
 #endif
 }
