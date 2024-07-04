@@ -1,6 +1,7 @@
 #include "csvloader.h"
 #include "stringutil.h"
 #include "tagtypes.h"
+#include "../../config.h"
 
 #include <inttypes.h>
 #include <stdint.h>
