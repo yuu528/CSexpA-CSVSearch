@@ -117,10 +117,10 @@ int main(int argc, char *argv[]) {
 
   printf("Loading DB...\n");
   loadCSV(argv[1], tag_db_g);
-  printf("DB loaded.\n");
+  printf("\nDB loaded.\n");
 
   /* Debug: Print tag_db_g */
-#ifdef DEBUG
+#ifdef OUTPUT_DB
   for (int i = 0; i < MAX_TAG_LEN; i++) {
     tag_t *tag = tag_db_g[i];
     while (tag != NULL) {

@@ -26,7 +26,7 @@ uint_fast8_t loadCSV(char *filename, tag_t *tag_db[]) {
   }
 
   while (fgets(buf, FILE_BUFFER_SIZE, fp) != NULL) {
-#ifdef DEBUG
+#ifdef OUTPUT_LOAD_PROGRESS
     printf("\rline: %lu", ++line);
 #endif
 

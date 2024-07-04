@@ -6,6 +6,8 @@
 #define DEBUG
 // #define DEBUG_V
 // #define DEBUG_VV
+// #define OUTPUT_DB
+// #define OUTPUT_LOAD_PROGRESS
 
 /* Length settings */
 #define MAX_TAG_LEN 255
