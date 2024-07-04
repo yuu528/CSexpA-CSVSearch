@@ -7,6 +7,7 @@
 
 /* clang-format off */
 #define URL_FORMAT "http://farm%" PRIuFAST8 ".static.flickr.com/%" PRIuFAST16 "/%" PRIuFAST32 "_%s.jpg"
+#define DATE_FORMAT "%" PRIuFAST16 "-%02" PRIuFAST8 "-%02" PRIuFAST8 " %02" PRIuFAST8 ":%02" PRIuFAST8 ":%02" PRIuFAST8
 /* clang-format on */
 
 #define URL_ID2_LEN 10
