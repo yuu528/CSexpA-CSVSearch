@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#define DEBUG
+// #define DEBUG
 /* More verbose debug */
 // #define DEBUG_V
 // #define DEBUG_VV
