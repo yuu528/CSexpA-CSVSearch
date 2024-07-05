@@ -1,5 +1,6 @@
 #include "../config.h"
 #include "./includes/csvloader.h"
+#include "./includes/extras.h"
 #include "./includes/socketutil.h"
 #include "./includes/tagtypes.h"
 
@@ -105,9 +106,21 @@ void *thread_func(void *param) {
 int main(int argc, char *argv[]) {
   /* Init on-memory database from csvs */
   if (argc < 2) {
-    printf("Usage: %s <csv path>\n", argv[0]);
+    printf("Usage: %s <option> <csv path>\n", argv[0]);
+    printf("Options:\n");
+    printf("  -c: Print tag length and exit.\n\n");
     printf("CSV file must be merged and sorted by date.\n");
     return 1;
+  }
+
+  if (strcmp(argv[1], "-c") == 0) {
+    if (argc < 3) {
+      printf("Usage: %s -c <csv path>\n", argv[0]);
+      return 1;
+    }
+
+    print_tag_length_csv(argv[2]);
+    return 0;
   }
 
   /* Initialize tag_db_g */
@@ -119,7 +132,7 @@ int main(int argc, char *argv[]) {
   load_csv(argv[1], tag_db_g);
   printf("\nDB loaded.\n");
 
-  /* Debug: Print tag_db_g */
+/* Debug: Print tag_db_g */
 #ifdef OUTPUT_DB
   for (int i = 0; i < MAX_TAG_LEN; i++) {
     tag_t *tag = tag_db_g[i];
