@@ -3,7 +3,7 @@
 #define _H_CONFIG_
 
 /* Debug options */
-#define DEBUG
+// #define DEBUG
 // #define DEBUG_V
 // #define DEBUG_VV
 // #define OUTPUT_DB
