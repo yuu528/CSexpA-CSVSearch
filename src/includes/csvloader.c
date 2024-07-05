@@ -15,7 +15,7 @@ uint_fast8_t load_csv(char *filename, tag_t *tag_db[]) {
   char *p_id, *p_tag, *psave;
   uint_fast8_t tag_len;
 
-#ifdef DEBUG
+#ifdef OUTPUT_LOAD_PROGRESS
   unsigned long line = 0;
 #endif
 
