@@ -1,7 +1,7 @@
 #include "csvloader.h"
+#include "../../config.h"
 #include "stringutil.h"
 #include "tagtypes.h"
-#include "../../config.h"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-uint_fast8_t loadCSV(char *filename, tag_t *tag_db[]) {
+uint_fast8_t load_csv(char *filename, tag_t *tag_db[]) {
   FILE *fp;
   char buf[FILE_BUFFER_SIZE];
   char *p_id, *p_tag, *psave;

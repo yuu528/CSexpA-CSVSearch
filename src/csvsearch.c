@@ -1,7 +1,7 @@
+#include "../config.h"
 #include "./includes/csvloader.h"
 #include "./includes/socketutil.h"
 #include "./includes/tagtypes.h"
-#include "../config.h"
 
 #include <inttypes.h>
 #include <pthread.h>
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
   }
 
   printf("Loading DB...\n");
-  loadCSV(argv[1], tag_db_g);
+  load_csv(argv[1], tag_db_g);
   printf("\nDB loaded.\n");
 
   /* Debug: Print tag_db_g */
