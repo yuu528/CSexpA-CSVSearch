@@ -1,6 +1,9 @@
-CC=gcc
-C++=g++
-LD=g++
+# CC=gcc
+# C++=g++
+# LD=g++
+CC=~/buildroot-2024.02.3/output/host/bin/aarch64-linux-gcc
+C++=~/buildroot-2024.02.3/output/host/bin/aarch64-linux-g++
+LD=~/buildroot-2024.02.3/output/host/bin/aarch64-linux-g++
 CFLAGS=-c -Wall -pedantic-errors -Ofast
 # CFLAGS=-c -Wall -pedantic-errors -O0 -g
 LDFLAGS=-pthread
