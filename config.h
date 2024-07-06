@@ -53,6 +53,9 @@
 #define HEADER_400 "HTTP/1.1 400 Bad Request"
 #define HEADER_400_LEN 24
 
+#define HEADER_500 "HTTP/1.1 500 Internal Server Error"
+#define HEADER_500_LEN 33
+
 #define HEADER_CONTENT_LENGTH "Content-Length: "
 #define HEADER_CONTENT_LENGTH_LEN 16
 

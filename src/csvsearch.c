@@ -29,7 +29,17 @@
 #define RETURN_400(sock)                                                       \
   send(sock, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2, MSG_NOSIGNAL);
 
-#define FINISH_THREAD(sock)                                                    \
+#define RETURN_500(sock)                                                       \
+  send(sock, HEADER_500 CRLF CRLF, HEADER_500_LEN + CRLF_LEN * 2, MSG_NOSIGNAL);
+
+#define FINISH_THREAD_NO_FREE(sock)                                            \
+  close(sock);                                                                 \
+  shutdown(sock, SHUT_RDWR);                                                   \
+  return NULL
+
+#define FINISH_THREAD(sock, buf, tag)                                          \
+  free(buf);                                                                   \
+  free(tag);                                                                   \
   close(sock);                                                                 \
   shutdown(sock, SHUT_RDWR);                                                   \
   return NULL
@@ -41,27 +51,34 @@ char *map_end_g;
 char **index_g;
 
 void *thread_func(void *param) {
-  char buf[RECV_SEND_SIZE];
-  char tag[MAX_TAG_LEN + 1];
+  char *buf, *tag;
   int sock = *(int *)param;
-
   free(param);
+
+  buf = (char *)malloc(RECV_SEND_SIZE * sizeof(char));
+  tag = (char *)malloc(MAX_TAG_LEN * sizeof(char));
+
+  if (buf == NULL || tag == NULL) {
+    perror(MSG_ERR_MEM_ALLOC);
+    RETURN_500(sock);
+    FINISH_THREAD_NO_FREE(sock);
+  }
 
   /* Start session */
   recv(sock, buf, RECV_SEND_SIZE, 0);
 
   /* Finish if buffer is empty */
   if (buf[0] == '\0') {
-    RETURN_400(sock);
-    FINISH_THREAD(sock);
+    RETURN_500(sock);
+    FINISH_THREAD(sock, buf, tag);
   }
 
   /* Replace first \r\n with \0 */
   char *p = buf;
   while (*(++p) != '\r') {
     if (*p == '\0') {
-      RETURN_400(sock);
-      FINISH_THREAD(sock);
+      RETURN_500(sock);
+      FINISH_THREAD(sock, buf, tag);
     }
   }
   *p = '\0';
@@ -71,7 +88,7 @@ void *thread_func(void *param) {
   while (*(++p) != '=') {
     if (*p == '\0') {
       RETURN_400(sock);
-      FINISH_THREAD(sock);
+      FINISH_THREAD(sock, buf, tag);
     }
   }
 
@@ -277,7 +294,7 @@ void *thread_func(void *param) {
   /* clang-format on */
 
   /* End session */
-  FINISH_THREAD(sock);
+  FINISH_THREAD(sock, buf, tag);
 }
 
 int main(int argc, char *argv[]) {
