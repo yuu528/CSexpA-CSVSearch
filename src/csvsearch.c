@@ -178,14 +178,14 @@ void *thread_func(void *param) {
 
         /* Get url_id1 */
         url_id1 = ++p_db;
-        url_id1_len = 0;
+        url_id1_len = 1;
         while (*(++p_db) != ',') {
           ++url_id1_len;
         }
 
         /* Get id */
         id = ++p_db;
-        id_len = 0;
+        id_len = 1;
         while (*(++p_db) != ',') {
           ++id_len;
         }
