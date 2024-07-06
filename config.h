@@ -46,6 +46,9 @@
 #define HEADER_200 "HTTP/1.1 200 OK"
 #define HEADER_200_LEN 15
 
+#define HEADER_400 "HTTP/1.1 400 Bad Request"
+#define HEADER_400_LEN 24
+
 #define HEADER_CONTENT_LENGTH "Content-Length: "
 #define HEADER_CONTENT_LENGTH_LEN 16
 

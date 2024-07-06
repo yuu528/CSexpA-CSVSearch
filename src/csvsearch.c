@@ -16,6 +16,11 @@
 
 #define TH_PARAM_SOCK *(int *)param
 
+#define FINISH_THREAD()                                                        \
+  close(TH_PARAM_SOCK);                                                        \
+  shutdown(TH_PARAM_SOCK, SHUT_RDWR);                                          \
+  return NULL
+
 /* Global variables */
 char *map_g;
 off_t file_size_g;
@@ -29,17 +34,28 @@ void *thread_func(void *param) {
   /* Start session */
   recv(TH_PARAM_SOCK, buf, RECV_SEND_SIZE, 0);
 
-  /* Find = */
-  uint_fast16_t i = 0;
-  while (buf[++i] != '=')
+  /* Replace first \r\n with \0 */
+  char *p = buf;
+  while (*(++p) != '\r')
     ;
+  *p = '\0';
+
+  /* Find = */
+  p = buf;
+  while (*(++p) != '=') {
+    if (*p == '\0') {
+      send(TH_PARAM_SOCK, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2,
+           MSG_NOSIGNAL);
+      FINISH_THREAD();
+    }
+  }
 
   /* Get tag */
-  int_fast16_t j = -1;
-  while (buf[++i] != ' ') {
-    tag[++j] = buf[i];
+  char *ptag = tag - 1;
+  while (*(++p) != ' ') {
+    *(++ptag) = *p;
   }
-  tag[j + 1] = '\0';
+  *(++ptag) = '\0';
 
   /* Start reply */
   /* clang-format off */
@@ -229,10 +245,7 @@ void *thread_func(void *param) {
   /* clang-format on */
 
   /* End session */
-  close(TH_PARAM_SOCK);
-  shutdown(TH_PARAM_SOCK, SHUT_RDWR);
-
-  return NULL;
+  FINISH_THREAD();
 }
 
 int main(int argc, char *argv[]) {
