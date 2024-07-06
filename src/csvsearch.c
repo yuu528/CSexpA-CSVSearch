@@ -65,10 +65,7 @@ void *thread_func(void *param) {
   }
 
   /* Start session */
-  recv(sock, buf, RECV_SEND_SIZE, 0);
-
-  /* Finish if buffer is empty */
-  if (buf[0] == '\0') {
+  if (recv(sock, buf, RECV_SEND_SIZE, 0) <= 0) {
     RETURN_500(sock);
     FINISH_THREAD(sock, buf, tag);
   }
@@ -348,6 +345,11 @@ int main(int argc, char *argv[]) {
   pthread_attr_init(&pth_attr);
   pthread_attr_setdetachstate(&pth_attr, PTHREAD_CREATE_DETACHED);
 
+  /* Setup timeout */
+  struct timeval tv;
+  tv.tv_sec = TIMEOUT_SEC;
+  tv.tv_usec = 0;
+
   while (1) {
     /* Create a new thread */
     struct sockaddr addr;
@@ -357,6 +359,9 @@ int main(int argc, char *argv[]) {
 
     p_sock_client = malloc(sizeof(int));
     *p_sock_client = accept(sock_listen, &addr, &len);
+
+    setsockopt(*p_sock_client, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
+               sizeof(tv));
 
     if (*p_sock_client == -1 && errno != EINTR) {
       perror(MSG_ERR_ACCEPT);

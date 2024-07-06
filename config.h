@@ -34,6 +34,9 @@
 #define DATE_DELIM "-"
 #define TIME_DELIM ":"
 
+/* Timeout settings */
+#define TIMEOUT_SEC 1
+
 /* Message settings */
 #define MSG_INFO_LOADING "Loading data..."
 #define MSG_INFO_CREATE_INDEX "Creating index..."
