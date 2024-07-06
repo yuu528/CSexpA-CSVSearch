@@ -35,7 +35,8 @@ off_t load_csv(char *filename, char **map, long *map_size) {
   *map_size = (file_size / page_size + 1) * page_size;
 
   /* Map file */
-  *map = (char *)mmap(NULL, *map_size, PROT_READ, MAP_PRIVATE, fd, 0);
+  *map = (char *)mmap(NULL, *map_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE,
+                      fd, 0);
 
   if (*map == MAP_FAILED) {
     perror(MSG_ERR_MMAP);
