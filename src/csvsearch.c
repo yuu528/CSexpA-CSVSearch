@@ -17,7 +17,10 @@
 #define TH_PARAM_SOCK *(int *)param
 
 /* Global variables */
-tag_t *tag_db_g[MAX_TAG_LEN];
+char *map_g;
+off_t file_size_g;
+char *map_end_g;
+char **index_g;
 
 void *thread_func(void *param) {
   char buf[RECV_SEND_SIZE];
@@ -52,37 +55,166 @@ void *thread_func(void *param) {
 
   /* Search tag */
   uint_fast8_t tag_len = strlen(tag);
-  if (tag_db_g[tag_len] != NULL) {
-    tag_t *ptag = tag_db_g[tag_len];
-    char result_sep = ' ';
 
-    while (ptag != NULL) {
-      if (strcmp(ptag->tag, tag) == 0) {
-        /* Print geotags */
-        geotag_t *geotag = ptag->geotag;
-        do {
-          /* clang-format off */
-          len = sprintf(
-            buf,
-            "%c{" JSON_KEY_LAT ":%f,"
-            JSON_KEY_LON ":%f,"
-            JSON_KEY_DATE ":\"" DATE_FORMAT "\","
-            JSON_KEY_URL ":\"" URL_FORMAT "\"}",
-            result_sep,
-            geotag->lat,
-            geotag->lon,
-            geotag->year, geotag->month, geotag->day, geotag->hour, geotag->minute, geotag->second,
-            geotag->server_id, geotag->url_id1, geotag->id, geotag->url_id2
-          );
-          /* clang-format on */
-          send(TH_PARAM_SOCK, buf, len, MSG_NOSIGNAL);
-          result_sep = ',';
-        } while ((geotag = geotag->next) != NULL);
+  /* CSV: tag,lat,...
+          ^ *p_db */
+  char *p_db = index_g[tag_len];
+  char *p_input;
+  char *p_end;
+  char *lat, *lon, *year, *month, *day, *hour, *minute, *second, *server_id,
+      *url_id1, *id;
+  int lat_len, lon_len, url_id1_len, id_len;
+  char result_sep = ' ';
 
-        break;
+  /* find next index */
+  uint_fast8_t next_tag_len = tag_len + 1;
+  while (next_tag_len <= MAX_TAG_LEN) {
+    if (index_g[next_tag_len] != NULL) {
+      p_end = index_g[next_tag_len];
+      break;
+    }
+    ++next_tag_len;
+  }
+  if (next_tag_len > MAX_TAG_LEN) {
+    p_end = map_end_g;
+  }
+
+  if (p_db != NULL) {
+    while (p_db < p_end) {
+#ifdef DEBUG_V
+      printf("p_db: %.*s\n", tag_len, p_db);
+#endif
+
+      /* Check tag */
+      /* first
+       *     tag,lat,...
+       *     ^ *p_db
+       *     tag
+       *     ^ *p_input
+       *
+       * next
+       *     tag,lat,...
+       *      ^ *p_db
+       *     tag
+       *      ^ *p_input    Not matched if *p_db != *p_input
+       *
+       * ...
+       * last
+       *     tag,lat,...
+       *        ^ *p_db
+       *     tag
+       *        ^ *p_input  Matched if *p_db == ',' && *p_input == '\0'
+       */
+      p_input = tag - 1;
+
+      --p_db;
+      while (*(++p_input) != '\0') {
+#ifdef DEBUG_VV
+        printf("%c %c\n", *(p_db + 1), *p_input);
+#endif
+        if (*(++p_db) != *p_input) {
+          /* Not matched */
+          break;
+        }
       }
 
-      ptag = ptag->next;
+      if (*(++p_db) == ',' && *p_input == '\0') {
+#ifdef DEBUG_V
+        printf("Matched\n");
+#endif
+        /* Matched */
+        /* Get lat */
+        /* Current
+         *     tag,lat,...
+         *        ^ *p_db
+         *
+         * Skip to ','
+         *     tag,lat,...
+         *            ^ *p_db
+         */
+        lat = ++p_db;
+        lat_len = 1;
+        while (*(++p_db) != ',') {
+          ++lat_len;
+        }
+
+        /* Get lon */
+        lon = ++p_db;
+        lon_len = 1;
+        while (*(++p_db) != ',') {
+          ++lon_len;
+        }
+
+        /* Get date */
+        /* Current
+         *     tag,lat,lon,YYYYMMDDHHMMSS,...
+         *                ^ *p_db
+         *
+         * Year
+         *                     v *p_db
+         *     tag,lat,lon,YYYYMMDDHHMMSS,...
+         *                 ^ *year
+         * ...
+         * Second
+         *                               v *p_db
+         *     tag,lat,lon,YYYYMMDDHHMMSS...
+         *                             ^ *second
+         */
+        year = ++p_db;
+        p_db += YEAR_LEN;
+        month = p_db;
+        p_db += MONTH_LEN;
+        day = p_db;
+        p_db += DAY_LEN;
+        hour = p_db;
+        p_db += HOUR_LEN;
+        minute = p_db;
+        p_db += MINUTE_LEN;
+        second = p_db;
+        p_db += SECOND_LEN;
+
+        /* Get server_id */
+        server_id = p_db;
+
+        /* Get url_id1 */
+        url_id1 = ++p_db;
+        url_id1_len = 0;
+        while (*(++p_db) != ',') {
+          ++url_id1_len;
+        }
+
+        /* Get id */
+        id = ++p_db;
+        id_len = 0;
+        while (*(++p_db) != ',') {
+          ++id_len;
+        }
+
+        /* clang-format off */
+      len = sprintf(
+        buf,
+        "%c{"
+        JSON_KEY_LAT ":%.*s,"
+        JSON_KEY_LON ":%.*s,"
+        JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
+        JSON_KEY_URL ":\"" URL_FORMAT_STR "\""
+        "}",
+        result_sep,
+        lat_len, lat,
+        lon_len, lon,
+        year, month, day, hour, minute, second,
+        server_id, url_id1_len, url_id1, id_len, id, ++p_db
+      );
+        /* clang-format on */
+
+        send(TH_PARAM_SOCK, buf, len, MSG_NOSIGNAL);
+        result_sep = ',';
+      }
+
+      /* Skip to next line */
+      while (*(++p_db) != '\n')
+        ;
+      ++p_db;
     }
   }
 
@@ -104,7 +236,7 @@ void *thread_func(void *param) {
 }
 
 int main(int argc, char *argv[]) {
-  /* Init on-memory database from csvs */
+  /* Parse args */
   if (argc < 2) {
     printf("Usage: %s <option> <csv path>\n", argv[0]);
     printf("Options:\n");
@@ -113,6 +245,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  /* Parse options */
   if (strcmp(argv[1], "-c") == 0) {
     if (argc < 3) {
       printf("Usage: %s -c <csv path>\n", argv[0]);
@@ -123,47 +256,18 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  /* Initialize tag_db_g */
-  for (uint_fast8_t i = 0; i < MAX_TAG_LEN; i++) {
-    tag_db_g[i] = NULL;
-  }
+  /* Load CSV to memory */
+  long map_size;
+  printf(MSG_INFO_LOADING "\n");
+  file_size_g = load_csv(argv[1], &map_g, &map_size);
+  printf(MSG_INFO_DONE "\n");
 
-  printf("Loading DB...\n");
-  load_csv(argv[1], tag_db_g);
-  printf("\nDB loaded.\n");
+  /* Create index */
+  printf(MSG_INFO_CREATE_INDEX "\n");
+  index_g = create_index(map_g, file_size_g);
+  printf(MSG_INFO_DONE "\n");
 
-/* Debug: Print tag_db_g */
-#ifdef OUTPUT_DB
-  for (int i = 0; i < MAX_TAG_LEN; i++) {
-    tag_t *tag = tag_db_g[i];
-    while (tag != NULL) {
-      printf("tag_db_g[%d] %" PRIuFAST8 ": %s\n", i, tag->geotag_count,
-             tag->tag);
-
-      geotag_t *geotag = tag->geotag;
-      while (geotag != NULL) {
-        /* clang-format off */
-      printf(
-        "  %" PRIuFAST32
-        ", %" PRIuFAST32 "-%" PRIuFAST8 "-%" PRIuFAST8
-        " %" PRIuFAST8 ":%" PRIuFAST8 ":%" PRIuFAST8
-        ", %f, %f, "
-        URL_FORMAT " \n",
-        geotag->id,
-        geotag->year, geotag->month, geotag->day,
-        geotag->hour, geotag->minute, geotag->second,
-        geotag->lat, geotag->lon,
-        geotag->server_id, geotag->url_id1, geotag->id, geotag->url_id2
-      );
-        /* clang-format on */
-        geotag = geotag->next;
-      }
-
-      tag = tag->next;
-    }
-  }
-  printf("DB output finished.\n");
-#endif
+  map_end_g = map_g + file_size_g - 1;
 
   /* Start server */
   uint_fast8_t sock_listen = tcp_listen(10028);

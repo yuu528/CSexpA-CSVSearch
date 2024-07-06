@@ -7,11 +7,20 @@
 // #define DEBUG_V
 // #define DEBUG_VV
 // #define OUTPUT_DB
-// #define OUTPUT_LOAD_PROGRESS
+#define OUTPUT_LOAD_PROGRESS
 
 /* Length settings */
 #define MAX_TAG_LEN 255
 #define MAX_GEOTAG_PER_TAG 100
+#define MAX_LAT_LON_LEN 16
+#define YEAR_LEN 4
+#define MONTH_LEN 2
+#define DAY_LEN 2
+#define HOUR_LEN 2
+#define MINUTE_LEN 2
+#define SECOND_LEN 2
+#define SERVER_ID_LEN 1
+#define URL_ID2_LEN 10
 
 /* Buffer settings */
 #define FILE_BUFFER_SIZE 512
@@ -24,8 +33,14 @@
 #define TIME_DELIM ":"
 
 /* Message settings */
-#define MSG_ERR_FILE_OPEN "File open error\n"
-#define MSG_ERR_MEM_ALLOC "Memory allocation error\n"
+#define MSG_INFO_LOADING "Loading data..."
+#define MSG_INFO_CREATE_INDEX "Creating index..."
+#define MSG_INFO_DONE "Done."
+
+#define MSG_ERR_FILE_OPEN "File open error"
+#define MSG_ERR_MEM_ALLOC "Memory allocation error"
+#define MSG_ERR_FILE_STAT "File stat error"
+#define MSG_ERR_MMAP "Memory map error"
 
 /* Reply settings */
 #define HEADER_200 "HTTP/1.1 200 OK"

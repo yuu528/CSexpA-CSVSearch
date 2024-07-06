@@ -1,8 +1,8 @@
 CC=gcc
 C++=g++
 LD=g++
-CFLAGS=-c -Wall -pedantic-errors -Ofast
-# CFLAGS=-c -Wall -pedantic-errors -O0 -g
+# CFLAGS=-c -Wall -pedantic-errors -Ofast
+CFLAGS=-c -Wall -pedantic-errors -O0 -g
 LDFLAGS=-pthread
 OBJECTS=./src/csvsearch.o ./src/includes/socketutil.o ./src/includes/csvloader.o ./src/includes/stringutil.o ./src/includes/extras.o
 EXECUTABLE=csvsearch.out
