@@ -13,8 +13,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <sys/socket.h>
-
 #define TH_PARAM_SOCK *(int *)param
 
 /* result <- encoded char
@@ -46,6 +44,11 @@ void *thread_func(void *param) {
 
   /* Start session */
   recv(TH_PARAM_SOCK, buf, RECV_SEND_SIZE, 0);
+
+  /* Finish if buffer is empty */
+  if (buf[0] == '\0') {
+    FINISH_THREAD();
+  }
 
   /* Replace first \r\n with \0 */
   char *p = buf;
