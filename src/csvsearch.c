@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -300,12 +301,15 @@ int main(int argc, char *argv[]) {
   pthread_attr_setdetachstate(&pth_attr, PTHREAD_CREATE_DETACHED);
 
   while (1) {
+    /* Create a new thread */
     struct sockaddr addr;
     socklen_t len;
-    int sock_client = accept(sock_listen, &addr, &len);
-
-    /* Create a new thread */
     pthread_t th;
-    pthread_create(&th, &pth_attr, thread_func, &sock_client);
+    int *p_sock_client;
+
+    p_sock_client = malloc(sizeof(int));
+    *p_sock_client = accept(sock_listen, &addr, &len);
+
+    pthread_create(&th, &pth_attr, thread_func, p_sock_client);
   }
 }
