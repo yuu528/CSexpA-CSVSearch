@@ -51,7 +51,7 @@ uint_fast8_t atoi_uint_fast8(char *str) {
 
 uint_fast64_t hextoi_uint_fast64(char *str) {
   int len = strlen(str);
-  uint_fast8_t result = 0;
+  uint_fast64_t result = 0;
 
   for (int i = len - 1; i >= 0; i--) {
     if ('0' <= str[i] && str[i] <= '9') {

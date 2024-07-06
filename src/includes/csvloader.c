@@ -61,7 +61,7 @@ char **create_index(char *map, off_t file_size) {
 
   char *p = map;
   char *end = map + file_size - 1;
-  uint_fast8_t tag_len = 0;
+  uint_fast16_t tag_len = 0;
   while (p < end && tag_len < MAX_TAG_LEN) {
     /* Count tag length */
     tag_len = 0;

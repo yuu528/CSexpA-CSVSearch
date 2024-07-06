@@ -54,7 +54,7 @@ void *thread_func(void *param) {
   send(TH_PARAM_SOCK, buf, len, MSG_NOSIGNAL);
 
   /* Search tag */
-  uint_fast8_t tag_len = strlen(tag);
+  uint_fast16_t tag_len = strlen(tag);
 
   /* CSV: tag,lat,...
           ^ *p_db */
@@ -64,10 +64,11 @@ void *thread_func(void *param) {
   char *lat, *lon, *year, *month, *day, *hour, *minute, *second, *server_id,
       *url_id1, *id;
   int lat_len, lon_len, url_id1_len, id_len;
+  uint_fast16_t count = 0;
   char result_sep = ' ';
 
   /* find next index */
-  uint_fast8_t next_tag_len = tag_len + 1;
+  uint_fast16_t next_tag_len = tag_len + 1;
   while (next_tag_len <= MAX_TAG_LEN) {
     if (index_g[next_tag_len] != NULL) {
       p_end = index_g[next_tag_len];
@@ -240,8 +241,9 @@ int main(int argc, char *argv[]) {
   if (argc < 2) {
     printf("Usage: %s <option> <csv path>\n", argv[0]);
     printf("Options:\n");
-    printf("  -c: Print tag length and exit.\n\n");
-    printf("CSV file must be merged and sorted by date.\n");
+    printf("  -c: Print tag length and exit.\n");
+    printf("  -m: Print tags with 100 records per tag limit\n\n");
+    printf("CSV file must be pre-processed by convert_csv.sh.\n");
     return 1;
   }
 
@@ -253,6 +255,14 @@ int main(int argc, char *argv[]) {
     }
 
     print_tag_length_csv(argv[2]);
+    return 0;
+  } else if (strcmp(argv[1], "-m") == 0) {
+    if (argc < 3) {
+      printf("Usage: %s -c <csv path>\n", argv[0]);
+      return 1;
+    }
+
+    print_tag_limit_csv(argv[2]);
     return 0;
   }
 

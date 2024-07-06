@@ -10,7 +10,7 @@
 #define OUTPUT_LOAD_PROGRESS
 
 /* Length settings */
-#define MAX_TAG_LEN 255
+#define MAX_TAG_LEN 370
 #define MAX_GEOTAG_PER_TAG 100
 #define MAX_LAT_LON_LEN 16
 #define YEAR_LEN 4
