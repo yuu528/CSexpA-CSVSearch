@@ -24,7 +24,7 @@
 
 /* Buffer settings */
 #define FILE_BUFFER_SIZE 512
-#define RECV_SEND_SIZE 1024
+#define RECV_SEND_SIZE 2048
 
 /* File delimiter settings */
 #define CSV_DELIM ","
