@@ -17,6 +17,18 @@
 
 #define TH_PARAM_SOCK *(int *)param
 
+/* result <- encoded char
+ * m = URL_DECODE_M or URL_DECODE_L
+ * */
+#define URL_DECODE(result, p, m)                                               \
+  if ('0' <= *(++p) && *p <= '9') {                                            \
+    result += (*p - '0') << m;                                                 \
+  } else {                                                                     \
+    result += (*p - 'A' + 10) << m;                                            \
+  }
+#define URL_DECODE_M 4
+#define URL_DECODE_L 0
+
 #define FINISH_THREAD()                                                        \
   close(TH_PARAM_SOCK);                                                        \
   shutdown(TH_PARAM_SOCK, SHUT_RDWR);                                          \
@@ -54,7 +66,14 @@ void *thread_func(void *param) {
   /* Get tag */
   char *ptag = tag - 1;
   while (*(++p) != ' ') {
-    *(++ptag) = *p;
+    /* url decode */
+    if (*p == '%') {
+      *(++ptag) = 0;
+      URL_DECODE(*ptag, p, URL_DECODE_M);
+      URL_DECODE(*ptag, p, URL_DECODE_L);
+    } else {
+      *(++ptag) = *p;
+    }
   }
   *(++ptag) = '\0';
 
