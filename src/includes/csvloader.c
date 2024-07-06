@@ -16,7 +16,7 @@
 off_t load_csv(char *filename, char **map, long *map_size) {
   struct stat st;
   off_t file_size;
-  int page_size, fd = open(filename, O_RDONLY);
+  int fd = open(filename, O_RDONLY);
 
   if (fd < 0) {
     perror(MSG_ERR_FILE_OPEN);
@@ -30,6 +30,12 @@ off_t load_csv(char *filename, char **map, long *map_size) {
   }
   file_size = st.st_size;
 
+#ifdef USE_READ
+  *map = (char *)malloc(file_size + 1);
+  read(fd, *map, file_size);
+  *(*map + file_size) = '\0';
+#else
+  int page_size;
   /* Calc map size */
   page_size = getpagesize();
   *map_size = (file_size / page_size + 1) * page_size;
@@ -42,6 +48,7 @@ off_t load_csv(char *filename, char **map, long *map_size) {
     perror(MSG_ERR_MMAP);
     exit(1);
   }
+#endif
 
   close(fd);
 
