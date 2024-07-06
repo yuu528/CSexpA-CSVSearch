@@ -41,6 +41,8 @@
 #define MSG_ERR_MEM_ALLOC "Memory allocation error"
 #define MSG_ERR_FILE_STAT "File stat error"
 #define MSG_ERR_MMAP "Memory map error"
+#define MSG_ERR_ACCEPT "Accept error"
+#define MSG_ERR_THREAD_CREATE "Thread create error"
 
 /* Reply settings */
 #define HEADER_200 "HTTP/1.1 200 OK"

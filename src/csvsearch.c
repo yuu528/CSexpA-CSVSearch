@@ -4,6 +4,7 @@
 #include "./includes/socketutil.h"
 #include "./includes/tagtypes.h"
 
+#include <errno.h>
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdint.h>
@@ -12,8 +13,6 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
-#define TH_PARAM_SOCK *(int *)param
 
 /* result <- encoded char
  * m = URL_DECODE_M or URL_DECODE_L
@@ -27,9 +26,12 @@
 #define URL_DECODE_M 4
 #define URL_DECODE_L 0
 
-#define FINISH_THREAD()                                                        \
-  close(TH_PARAM_SOCK);                                                        \
-  shutdown(TH_PARAM_SOCK, SHUT_RDWR);                                          \
+#define RETURN_400(sock)                                                       \
+  send(sock, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2, MSG_NOSIGNAL);
+
+#define FINISH_THREAD(sock)                                                    \
+  close(sock);                                                                 \
+  shutdown(sock, SHUT_RDWR);                                                   \
   return NULL
 
 /* Global variables */
@@ -41,28 +43,35 @@ char **index_g;
 void *thread_func(void *param) {
   char buf[RECV_SEND_SIZE];
   char tag[MAX_TAG_LEN + 1];
+  int sock = *(int *)param;
+
+  free(param);
 
   /* Start session */
-  recv(TH_PARAM_SOCK, buf, RECV_SEND_SIZE, 0);
+  recv(sock, buf, RECV_SEND_SIZE, 0);
 
   /* Finish if buffer is empty */
   if (buf[0] == '\0') {
-    FINISH_THREAD();
+    RETURN_400(sock);
+    FINISH_THREAD(sock);
   }
 
   /* Replace first \r\n with \0 */
   char *p = buf;
-  while (*(++p) != '\r')
-    ;
+  while (*(++p) != '\r') {
+    if (*p == '\0') {
+      RETURN_400(sock);
+      FINISH_THREAD(sock);
+    }
+  }
   *p = '\0';
 
   /* Find = */
   p = buf;
   while (*(++p) != '=') {
     if (*p == '\0') {
-      send(TH_PARAM_SOCK, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2,
-           MSG_NOSIGNAL);
-      FINISH_THREAD();
+      RETURN_400(sock);
+      FINISH_THREAD(sock);
     }
   }
 
@@ -90,7 +99,7 @@ void *thread_func(void *param) {
     tag
   );
   /* clang-format on */
-  send(TH_PARAM_SOCK, buf, len, MSG_NOSIGNAL);
+  send(sock, buf, len, MSG_NOSIGNAL);
 
   /* Search tag */
   uint_fast16_t tag_len = strlen(tag);
@@ -246,7 +255,7 @@ void *thread_func(void *param) {
       );
         /* clang-format on */
 
-        send(TH_PARAM_SOCK, buf, len, MSG_NOSIGNAL);
+        send(sock, buf, len, MSG_NOSIGNAL);
         result_sep = ',';
       }
 
@@ -260,7 +269,7 @@ void *thread_func(void *param) {
   /* Close json */
   /* clang-format off */
   send(
-    TH_PARAM_SOCK,
+    sock,
     "]}" CRLF,
     2 + CRLF_LEN,
     MSG_NOSIGNAL
@@ -268,7 +277,7 @@ void *thread_func(void *param) {
   /* clang-format on */
 
   /* End session */
-  FINISH_THREAD();
+  FINISH_THREAD(sock);
 }
 
 int main(int argc, char *argv[]) {
@@ -332,6 +341,17 @@ int main(int argc, char *argv[]) {
     p_sock_client = malloc(sizeof(int));
     *p_sock_client = accept(sock_listen, &addr, &len);
 
-    pthread_create(&th, &pth_attr, thread_func, p_sock_client);
+    if (*p_sock_client == -1 && errno != EINTR) {
+      perror(MSG_ERR_ACCEPT);
+      free(p_sock_client);
+      continue;
+    }
+
+    if (pthread_create(&th, &pth_attr, thread_func, p_sock_client) != 0) {
+      perror(MSG_ERR_THREAD_CREATE);
+      close(*p_sock_client);
+      shutdown(*p_sock_client, SHUT_RDWR);
+      free(p_sock_client);
+    }
   }
 }
