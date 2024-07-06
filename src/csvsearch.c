@@ -352,18 +352,16 @@ int main(int argc, char *argv[]) {
 
   while (1) {
     /* Create a new thread */
-    struct sockaddr addr;
-    socklen_t len;
     pthread_t th;
     int *p_sock_client;
 
     p_sock_client = malloc(sizeof(int));
-    *p_sock_client = accept(sock_listen, &addr, &len);
+    *p_sock_client = accept(sock_listen, NULL, NULL);
 
     setsockopt(*p_sock_client, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
                sizeof(tv));
 
-    if (*p_sock_client == -1 && errno != EINTR) {
+    if (*p_sock_client == -1) {
       perror(MSG_ERR_ACCEPT);
       free(p_sock_client);
       continue;
