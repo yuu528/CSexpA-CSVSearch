@@ -64,7 +64,6 @@ void *thread_func(void *param) {
   char *lat, *lon, *year, *month, *day, *hour, *minute, *second, *server_id,
       *url_id1, *id;
   int lat_len, lon_len, url_id1_len, id_len;
-  uint_fast16_t count = 0;
   char result_sep = ' ';
 
   /* find next index */
