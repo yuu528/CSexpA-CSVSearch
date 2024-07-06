@@ -4,7 +4,7 @@
 CC=~/buildroot-2024.02.3/output/host/bin/aarch64-linux-gcc
 C++=~/buildroot-2024.02.3/output/host/bin/aarch64-linux-g++
 LD=~/buildroot-2024.02.3/output/host/bin/aarch64-linux-g++
-CFLAGS=-c -Wall -pedantic-errors -Ofast
+CFLAGS=-c -Wall -pedantic-errors -Ofast -flto
 # CFLAGS=-c -Wall -pedantic-errors -O0 -g
 LDFLAGS=-pthread
 OBJECTS=./src/csvsearch.o ./src/includes/socketutil.o ./src/includes/csvloader.o ./src/includes/stringutil.o ./src/includes/extras.o
