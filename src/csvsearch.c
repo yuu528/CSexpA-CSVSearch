@@ -5,6 +5,8 @@
 #include "./includes/socketutil.h"
 
 #include <inttypes.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -130,10 +132,15 @@ int main(int argc, char *argv[]) {
   pthread_attr_init(&pth_attr);
   pthread_attr_setdetachstate(&pth_attr, PTHREAD_CREATE_DETACHED);
 
-  /* Setup timeout */
+  /* Setup socket options */
   struct timeval tv;
   tv.tv_sec = TIMEOUT_SEC;
   tv.tv_usec = 0;
+
+  int optval_true = 1;
+
+  struct linger linger;
+  linger.l_onoff = 0;
 
   /* Setup epoll */
 #ifdef USE_EPOLL
@@ -171,10 +178,21 @@ int main(int argc, char *argv[]) {
     p_sock_client = malloc(sizeof(int));
     *p_sock_client = accept(sock_listen, NULL, NULL);
 
+#ifdef ENABLE_TIMEOUT
     setsockopt(*p_sock_client, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
                sizeof(tv));
     setsockopt(*p_sock_client, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv,
                sizeof(tv));
+#endif
+#ifdef ENABLE_TCP_NODELAY
+    setsockopt(*p_sock_client, IPPROTO_TCP, TCP_NODELAY, &optval_true, 1);
+#endif
+#ifdef ENABLE_TCP_CORK
+    setsockopt(*p_sock_client, IPPROTO_TCP, TCP_CORK, &optval_true, 1);
+#endif
+#ifdef DISABLE_LINGER
+    setsockopt(*p_sock_client, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
+#endif
 
     if (*p_sock_client == -1) {
       perror(MSG_ERR_ACCEPT);

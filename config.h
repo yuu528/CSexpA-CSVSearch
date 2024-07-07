@@ -18,6 +18,11 @@
 #define ALT_URL_DECODE
 
 /* Connection settings */
+#define ENABLE_TIMEOUT
+#define ENABLE_TCP_NODELAY
+#define ENABLE_TCP_CORK
+#define DISABLE_LINGER
+/* Send, recv timeout */
 #define TIMEOUT_SEC 1
 /* Skip first 'GET /?tag' */
 #define SKIP_HEADER_FIRST_LEN 9
