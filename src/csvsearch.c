@@ -173,6 +173,8 @@ int main(int argc, char *argv[]) {
 
     setsockopt(*p_sock_client, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
                sizeof(tv));
+    setsockopt(*p_sock_client, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv,
+               sizeof(tv));
 
     if (*p_sock_client == -1) {
       perror(MSG_ERR_ACCEPT);
