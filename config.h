@@ -29,6 +29,12 @@
 #define SKIP_HEADER_FIRST_LEN 9
 /* Use epoll for accept() */
 #define USE_EPOLL
+/* First skip chars when not matched */
+/*
+ * tag,lat,lon,YYYYMMDDHHMMSSserver_id,URL_ID1,ID,URL_ID2
+ *   ^ ---------> Move <SKIP_TO_NEXT_LINE_FIRST>
+ */
+#define SKIP_TO_NEXT_LINE_FIRST 35
 
 /* Length settings */
 #define MAX_TAG_LEN 370

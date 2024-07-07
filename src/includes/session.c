@@ -137,6 +137,7 @@ void *session_thread(void *param) {
 #endif
         if (*(++p_db) != *p_input) {
           /* Not matched */
+          p_db += SKIP_TO_NEXT_LINE_FIRST;
           break;
         }
       }
