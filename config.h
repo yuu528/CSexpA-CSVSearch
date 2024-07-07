@@ -34,7 +34,7 @@
  * tag,lat,lon,YYYYMMDDHHMMSSserver_id,URL_ID1,ID,URL_ID2
  *   ^ ---------> Move <SKIP_TO_NEXT_LINE_FIRST>
  */
-#define SKIP_TO_NEXT_LINE_FIRST 35
+#define SKIP_TO_NEXT_LINE_FIRST 25
 
 /* Length settings */
 #define MAX_TAG_LEN 370

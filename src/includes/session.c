@@ -138,103 +138,102 @@ void *session_thread(void *param) {
         if (*(++p_db) != *p_input) {
           /* Not matched */
           p_db += SKIP_TO_NEXT_LINE_FIRST;
-          break;
+          goto to_next;
         }
       }
 
-      if (*(++p_db) == ',') {
 #ifdef DEBUG_V
-        printf("Matched\n");
+      printf("Matched\n");
 #endif
-        /* Matched */
-        /* Get lat */
-        /* Current
-         *     tag,lat,...
-         *        ^ *p_db
-         *
-         * Skip to ','
-         *     tag,lat,...
-         *            ^ *p_db
-         */
-        lat = ++p_db;
-        lat_len = 1;
-        while (*(++p_db) != ',') {
-          ++lat_len;
-        }
-
-        /* Get lon */
-        lon = ++p_db;
-        lon_len = 1;
-        while (*(++p_db) != ',') {
-          ++lon_len;
-        }
-
-        /* Get date */
-        /* Current
-         *     tag,lat,lon,YYYYMMDDHHMMSS,...
-         *                ^ *p_db
-         *
-         * Year
-         *                     v *p_db
-         *     tag,lat,lon,YYYYMMDDHHMMSS,...
-         *                 ^ *year
-         * ...
-         * Second
-         *                               v *p_db
-         *     tag,lat,lon,YYYYMMDDHHMMSS...
-         *                             ^ *second
-         */
-        year = ++p_db;
-        p_db += YEAR_LEN;
-        month = p_db;
-        p_db += MONTH_LEN;
-        day = p_db;
-        p_db += DAY_LEN;
-        hour = p_db;
-        p_db += HOUR_LEN;
-        minute = p_db;
-        p_db += MINUTE_LEN;
-        second = p_db;
-        p_db += SECOND_LEN;
-
-        /* Get server_id */
-        server_id = p_db;
-
-        /* Get url_id1 */
-        url_id1 = ++p_db;
-        url_id1_len = 1;
-        while (*(++p_db) != ',') {
-          ++url_id1_len;
-        }
-
-        /* Get id */
-        id = ++p_db;
-        id_len = 1;
-        while (*(++p_db) != ',') {
-          ++id_len;
-        }
-
-        /* clang-format off */
-        len = sprintf(
-          buf,
-          "%c{"
-          JSON_KEY_LAT ":%.*s,"
-          JSON_KEY_LON ":%.*s,"
-          JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
-          JSON_KEY_URL ":\"" URL_FORMAT_STR "\""
-          "}",
-          result_sep,
-          lat_len, lat,
-          lon_len, lon,
-          year, month, day, hour, minute, second,
-          server_id, url_id1_len, url_id1, id_len, id, ++p_db
-        );
-        /* clang-format on */
-
-        send(sock, buf, len, SEND_FLAGS);
-        result_sep = ',';
+      /* Matched */
+      /* Get lat */
+      /* Current
+       *     tag,lat,...
+       *        ^ *p_db
+       *
+       * Skip to ','
+       *     tag,lat,...
+       *            ^ *p_db
+       */
+      lat = (p_db += 2);
+      lat_len = 1;
+      while (*(++p_db) != ',') {
+        ++lat_len;
       }
 
+      /* Get lon */
+      lon = ++p_db;
+      lon_len = 1;
+      while (*(++p_db) != ',') {
+        ++lon_len;
+      }
+
+      /* Get date */
+      /* Current
+       *     tag,lat,lon,YYYYMMDDHHMMSS,...
+       *                ^ *p_db
+       *
+       * Year
+       *                     v *p_db
+       *     tag,lat,lon,YYYYMMDDHHMMSS,...
+       *                 ^ *year
+       * ...
+       * Second
+       *                               v *p_db
+       *     tag,lat,lon,YYYYMMDDHHMMSS...
+       *                             ^ *second
+       */
+      year = ++p_db;
+      p_db += YEAR_LEN;
+      month = p_db;
+      p_db += MONTH_LEN;
+      day = p_db;
+      p_db += DAY_LEN;
+      hour = p_db;
+      p_db += HOUR_LEN;
+      minute = p_db;
+      p_db += MINUTE_LEN;
+      second = p_db;
+      p_db += SECOND_LEN;
+
+      /* Get server_id */
+      server_id = p_db;
+
+      /* Get url_id1 */
+      url_id1 = ++p_db;
+      url_id1_len = 1;
+      while (*(++p_db) != ',') {
+        ++url_id1_len;
+      }
+
+      /* Get id */
+      id = ++p_db;
+      id_len = 1;
+      while (*(++p_db) != ',') {
+        ++id_len;
+      }
+
+      /* clang-format off */
+      len = sprintf(
+        buf,
+        "%c{"
+        JSON_KEY_LAT ":%.*s,"
+        JSON_KEY_LON ":%.*s,"
+        JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
+        JSON_KEY_URL ":\"" URL_FORMAT_STR "\""
+        "}",
+        result_sep,
+        lat_len, lat,
+        lon_len, lon,
+        year, month, day, hour, minute, second,
+        server_id, url_id1_len, url_id1, id_len, id, ++p_db
+      );
+      /* clang-format on */
+
+      send(sock, buf, len, SEND_FLAGS);
+      result_sep = ',';
+
+    to_next:
       /* Skip to next line */
       while (*(++p_db) != '\n')
         ;
