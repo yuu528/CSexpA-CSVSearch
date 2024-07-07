@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -134,10 +135,38 @@ int main(int argc, char *argv[]) {
   tv.tv_sec = TIMEOUT_SEC;
   tv.tv_usec = 0;
 
+  /* Setup epoll */
+#ifdef USE_EPOLL
+  int event_count;
+  struct epoll_event ev;
+  int epoll_fd = epoll_create1(0);
+  if (epoll_fd == -1) {
+    perror(MSG_ERR_EPOLL_CREATE);
+    exit(1);
+  }
+
+  memset(&ev, 0, sizeof(struct epoll_event));
+  ev.events = EPOLLIN;
+  ev.data.fd = sock_listen;
+  epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock_listen, &ev);
+#endif
+
   while (1) {
     /* Create a new thread */
     pthread_t th;
     int *p_sock_client;
+
+#ifdef USE_EPOLL
+    event_count = epoll_wait(epoll_fd, &ev, 1, -1);
+    if (event_count == -1) {
+      perror(MSG_ERR_EPOLL_WAIT);
+      exit(1);
+    }
+
+    if (ev.data.fd != sock_listen) {
+      continue;
+    }
+#endif
 
     p_sock_client = malloc(sizeof(int));
     *p_sock_client = accept(sock_listen, NULL, NULL);

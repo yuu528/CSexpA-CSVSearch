@@ -17,6 +17,13 @@
 /* Use alternative method to decode URL */
 #define ALT_URL_DECODE
 
+/* Connection settings */
+#define TIMEOUT_SEC 1
+/* Skip first 'GET /?tag' */
+#define SKIP_HEADER_FIRST_LEN 9
+/* Use epoll for accept() */
+#define USE_EPOLL
+
 /* Length settings */
 #define MAX_TAG_LEN 370
 #define MAX_GEOTAG_PER_TAG 100
@@ -40,11 +47,6 @@
 #define DATE_DELIM "-"
 #define TIME_DELIM ":"
 
-/* Receive settings */
-#define TIMEOUT_SEC 1
-/* Skip first 'GET /?tag' */
-#define SKIP_HEADER_FIRST_LEN 9
-
 /* Message settings */
 #define MSG_INFO_LOADING "Loading data..."
 #define MSG_INFO_CREATE_INDEX "Creating index..."
@@ -54,6 +56,8 @@
 #define MSG_ERR_MEM_ALLOC "Memory allocation error"
 #define MSG_ERR_FILE_STAT "File stat error"
 #define MSG_ERR_MMAP "Memory map error"
+#define MSG_ERR_EPOLL_CREATE "Epoll create error"
+#define MSG_ERR_EPOLL_WAIT "Epoll wait error"
 #define MSG_ERR_ACCEPT "Accept error"
 #define MSG_ERR_THREAD_CREATE "Thread create error"
 
