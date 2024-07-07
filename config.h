@@ -7,9 +7,15 @@
 // #define DEBUG_V
 // #define DEBUG_VV
 
-/* File reading settings */
+/* File load settings */
 /* Use read() instead of mmap() */
 #define USE_READ
+
+/* Parsing settings */
+/* Disable URL decoding */
+// #define DISABLE_URL_DECODE
+/* Use alternative method to decode URL */
+#define ALT_URL_DECODE
 
 /* Length settings */
 #define MAX_TAG_LEN 370

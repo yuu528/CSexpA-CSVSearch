@@ -18,7 +18,13 @@ char *map_g;
 off_t file_size_g;
 char *map_end_g;
 char **index_g;
+
+#ifdef ALT_URL_DECODE
+uint_fast8_t *hex_table_g;
+uint_fast16_t offset_g;
+#else
 char hex_table_g[256] = {0};
+#endif
 
 int main(int argc, char *argv[]) {
   /* Parse args */
@@ -63,13 +69,56 @@ int main(int argc, char *argv[]) {
 
   map_end_g = map_g + file_size_g - 1;
 
-  /* Setup hex table */
+/* Setup hex table */
+#ifndef ALT_URL_DECODE
   for (uint_fast16_t i = '0'; i <= '9'; ++i) {
     hex_table_g[i] = i - '0';
-  }
+#else
+  char tmp[3] = "00";
+  offset_g = *((uint16_t *)(tmp));
+  tmp[0] = 'F';
+  tmp[1] = 'F';
+  int size = *((uint16_t *)(tmp)) - offset_g + 1;
 
+  hex_table_g = (uint_fast8_t *)malloc(size * sizeof(uint_fast8_t));
+  if (hex_table_g == NULL) {
+    return 1;
+#endif
+  }
+#ifndef ALT_URL_DECODE
   for (uint_fast16_t i = 'A'; i <= 'F'; ++i) {
     hex_table_g[i] = i - 'A' + 10;
+#else
+  for (uint_fast16_t i = '0'; i <= '9'; i++) {
+    for (uint_fast16_t j = '0'; j <= '9'; j++) {
+      tmp[0] = i;
+      tmp[1] = j;
+      hex_table_g[*((uint16_t *)(tmp)) - offset_g] = (i - '0') << 4 | (j - '0');
+    }
+
+    for (uint_fast16_t j = 'A'; j <= 'F'; j++) {
+      tmp[0] = i;
+      tmp[1] = j;
+      hex_table_g[*((uint16_t *)(tmp)) - offset_g] =
+          (i - '0') << 4 | (j - 'A' + 10);
+    }
+  }
+
+  for (uint_fast16_t i = 'A'; i <= 'F'; i++) {
+    for (uint_fast16_t j = '0'; j <= '9'; j++) {
+      tmp[0] = i;
+      tmp[1] = j;
+      hex_table_g[*((uint16_t *)(tmp)) - offset_g] =
+          (i - 'A' + 10) << 4 | (j - '0');
+    }
+
+    for (uint_fast16_t j = 'A'; j <= 'F'; j++) {
+      tmp[0] = i;
+      tmp[1] = j;
+      hex_table_g[*((uint16_t *)(tmp)) - offset_g] =
+          (i - 'A' + 10) << 4 | (j - 'A' + 10);
+    }
+#endif
   }
 
   /* Start server */

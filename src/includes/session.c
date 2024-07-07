@@ -44,14 +44,22 @@ void *session_thread(void *param) {
   /* Get tag */
   char *ptag = tag - 1;
   while (*(++p) != ' ') {
+#ifndef DISABLE_URL_DECODE
     /* url decode */
     if (*p == '%') {
+#ifndef ALT_URL_DECODE
       *(++ptag) = 0;
       URL_DECODE(*ptag, p, URL_DECODE_M);
       URL_DECODE(*ptag, p, URL_DECODE_L);
+#else
+      URL_DECODE(*(++ptag), p);
+#endif
     } else {
+#endif
       *(++ptag) = *p;
+#ifndef DISABLE_URL_DECODE
     }
+#endif
   }
   *(++ptag) = '\0';
 
