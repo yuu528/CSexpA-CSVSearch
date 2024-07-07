@@ -36,14 +36,7 @@
 #define RETURN_500(sock)                                                       \
   send(sock, HEADER_500 CRLF CRLF, HEADER_500_LEN + CRLF_LEN * 2, SEND_FLAGS);
 
-#define FINISH_THREAD_NO_FREE(sock)                                            \
-  close(sock);                                                                 \
-  shutdown(sock, SHUT_RDWR);                                                   \
-  return NULL
-
 #define FINISH_THREAD(sock, buf, tag)                                          \
-  free(buf);                                                                   \
-  free(tag);                                                                   \
   close(sock);                                                                 \
   shutdown(sock, SHUT_RDWR);                                                   \
   return NULL

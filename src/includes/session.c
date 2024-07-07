@@ -11,18 +11,9 @@
 #include <unistd.h>
 
 void *session_thread(void *param) {
-  char *buf, *tag;
+  char buf[RECV_SEND_SIZE], tag[MAX_TAG_LEN];
   int sock = *(int *)param;
   free(param);
-
-  buf = (char *)malloc(RECV_SEND_SIZE * sizeof(char));
-  tag = (char *)malloc(MAX_TAG_LEN * sizeof(char));
-
-  if (buf == NULL || tag == NULL) {
-    perror(MSG_ERR_MEM_ALLOC);
-    RETURN_500(sock);
-    FINISH_THREAD_NO_FREE(sock);
-  }
 
   /* Start session */
   if (recv(sock, buf, RECV_SEND_SIZE, 0) <= SKIP_HEADER_FIRST_LEN) {
