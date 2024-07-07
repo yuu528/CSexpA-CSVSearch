@@ -7,12 +7,7 @@
 /* result <- encoded char
  * m = URL_DECODE_M or URL_DECODE_L
  * */
-#define URL_DECODE(result, p, m)                                               \
-  if ('0' <= *(++p) && *p <= '9') {                                            \
-    result += (*p - '0') << m;                                                 \
-  } else {                                                                     \
-    result += (*p - 'A' + 10) << m;                                            \
-  }
+#define URL_DECODE(result, p, m) result += hex_table_g[(int)*(++p)] << m;
 #define URL_DECODE_M 4
 #define URL_DECODE_L 0
 
@@ -38,6 +33,7 @@ extern char *map_g;
 extern off_t file_size_g;
 extern char *map_end_g;
 extern char **index_g;
+extern char hex_table_g[256];
 
 void *session_thread(void *param);
 

@@ -18,6 +18,7 @@ char *map_g;
 off_t file_size_g;
 char *map_end_g;
 char **index_g;
+char hex_table_g[256] = {0};
 
 int main(int argc, char *argv[]) {
   /* Parse args */
@@ -61,6 +62,15 @@ int main(int argc, char *argv[]) {
   printf(MSG_INFO_DONE "\n");
 
   map_end_g = map_g + file_size_g - 1;
+
+  /* Setup hex table */
+  for (uint_fast16_t i = '0'; i <= '9'; ++i) {
+    hex_table_g[i] = i - '0';
+  }
+
+  for (uint_fast16_t i = 'A'; i <= 'F'; ++i) {
+    hex_table_g[i] = i - 'A' + 10;
+  }
 
   /* Start server */
   uint_fast8_t sock_listen = tcp_listen(10028);
