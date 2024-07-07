@@ -22,6 +22,7 @@
 #define ENABLE_TCP_NODELAY
 #define ENABLE_TCP_CORK
 #define DISABLE_LINGER
+#define SEND_NONBLOCK
 /* Send, recv timeout */
 #define TIMEOUT_SEC 1
 /* Skip first 'GET /?tag' */

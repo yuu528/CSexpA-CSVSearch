@@ -73,7 +73,7 @@ void *session_thread(void *param) {
     tag
   );
   /* clang-format on */
-  send(sock, buf, len, MSG_NOSIGNAL);
+  send(sock, buf, len, SEND_FLAGS);
 
   /* Search tag */
   uint_fast16_t tag_len = strlen(tag);
@@ -214,23 +214,23 @@ void *session_thread(void *param) {
         }
 
         /* clang-format off */
-      len = sprintf(
-        buf,
-        "%c{"
-        JSON_KEY_LAT ":%.*s,"
-        JSON_KEY_LON ":%.*s,"
-        JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
-        JSON_KEY_URL ":\"" URL_FORMAT_STR "\""
-        "}",
-        result_sep,
-        lat_len, lat,
-        lon_len, lon,
-        year, month, day, hour, minute, second,
-        server_id, url_id1_len, url_id1, id_len, id, ++p_db
-      );
+        len = sprintf(
+          buf,
+          "%c{"
+          JSON_KEY_LAT ":%.*s,"
+          JSON_KEY_LON ":%.*s,"
+          JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
+          JSON_KEY_URL ":\"" URL_FORMAT_STR "\""
+          "}",
+          result_sep,
+          lat_len, lat,
+          lon_len, lon,
+          year, month, day, hour, minute, second,
+          server_id, url_id1_len, url_id1, id_len, id, ++p_db
+        );
         /* clang-format on */
 
-        send(sock, buf, len, MSG_NOSIGNAL);
+        send(sock, buf, len, SEND_FLAGS);
         result_sep = ',';
       }
 
@@ -247,7 +247,7 @@ void *session_thread(void *param) {
     sock,
     "]}" CRLF,
     2 + CRLF_LEN,
-    MSG_NOSIGNAL
+    SEND_FLAGS
   );
   /* clang-format on */
 

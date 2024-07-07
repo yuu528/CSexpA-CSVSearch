@@ -6,6 +6,12 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#ifdef SEND_NONBLOCK
+#define SEND_FLAGS MSG_NOSIGNAL | MSG_DONTWAIT
+#else
+#define SEND_FLAGS MSG_NOSIGNAL
+#endif
+
 /* result <- encoded char
  * m = URL_DECODE_M or URL_DECODE_L
  * */
@@ -25,10 +31,10 @@
 #endif
 
 #define RETURN_400(sock)                                                       \
-  send(sock, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2, MSG_NOSIGNAL);
+  send(sock, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2, SEND_FLAGS);
 
 #define RETURN_500(sock)                                                       \
-  send(sock, HEADER_500 CRLF CRLF, HEADER_500_LEN + CRLF_LEN * 2, MSG_NOSIGNAL);
+  send(sock, HEADER_500 CRLF CRLF, HEADER_500_LEN + CRLF_LEN * 2, SEND_FLAGS);
 
 #define FINISH_THREAD_NO_FREE(sock)                                            \
   close(sock);                                                                 \
