@@ -30,18 +30,12 @@ void *session_thread(void *param) {
     FINISH_THREAD(sock, buf, tag);
   }
 
-  /* Replace first ' ' with \0 */
+  /* Check if it is a valid request */
+  /*
+   * GET /?tag=... HTTP/1.1
+   *          ^ *p
+   */
   char *p = buf + SKIP_HEADER_FIRST_LEN;
-  while (*(++p) != ' ') {
-    if (*p == '\0') {
-      RETURN_500(sock);
-      FINISH_THREAD(sock, buf, tag);
-    }
-  }
-  *p = '\0';
-
-  /* Find = */
-  p = buf + SKIP_HEADER_FIRST_LEN;
   if (*p != '=') {
     RETURN_400(sock);
     FINISH_THREAD(sock, buf, tag);
@@ -49,7 +43,7 @@ void *session_thread(void *param) {
 
   /* Get tag */
   char *ptag = tag - 1;
-  while (*(++p) != '\0') {
+  while (*(++p) != ' ') {
     /* url decode */
     if (*p == '%') {
       *(++ptag) = 0;
