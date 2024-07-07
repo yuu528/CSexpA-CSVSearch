@@ -34,8 +34,10 @@
 #define DATE_DELIM "-"
 #define TIME_DELIM ":"
 
-/* Timeout settings */
+/* Receive settings */
 #define TIMEOUT_SEC 1
+/* Skip first 'GET /?tag' */
+#define SKIP_HEADER_FIRST_LEN 9
 
 /* Message settings */
 #define MSG_INFO_LOADING "Loading data..."

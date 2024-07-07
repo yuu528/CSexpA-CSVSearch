@@ -25,14 +25,14 @@ void *session_thread(void *param) {
   }
 
   /* Start session */
-  if (recv(sock, buf, RECV_SEND_SIZE, 0) <= 0) {
+  if (recv(sock, buf, RECV_SEND_SIZE, 0) <= SKIP_HEADER_FIRST_LEN) {
     RETURN_500(sock);
     FINISH_THREAD(sock, buf, tag);
   }
 
-  /* Replace first \r\n with \0 */
-  char *p = buf;
-  while (*(++p) != '\r') {
+  /* Replace first ' ' with \0 */
+  char *p = buf + SKIP_HEADER_FIRST_LEN;
+  while (*(++p) != ' ') {
     if (*p == '\0') {
       RETURN_500(sock);
       FINISH_THREAD(sock, buf, tag);
@@ -41,17 +41,15 @@ void *session_thread(void *param) {
   *p = '\0';
 
   /* Find = */
-  p = buf;
-  while (*(++p) != '=') {
-    if (*p == '\0') {
-      RETURN_400(sock);
-      FINISH_THREAD(sock, buf, tag);
-    }
+  p = buf + SKIP_HEADER_FIRST_LEN;
+  if (*p != '=') {
+    RETURN_400(sock);
+    FINISH_THREAD(sock, buf, tag);
   }
 
   /* Get tag */
   char *ptag = tag - 1;
-  while (*(++p) != ' ') {
+  while (*(++p) != '\0') {
     /* url decode */
     if (*p == '%') {
       *(++ptag) = 0;
