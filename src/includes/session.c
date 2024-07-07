@@ -103,7 +103,7 @@ void *session_thread(void *param) {
   }
 
   if (p_db != NULL) {
-    while (p_db < p_end) {
+    do {
 #ifdef DEBUG_V
       printf("p_db: %.*s\n", tag_len, p_db);
 #endif
@@ -238,7 +238,7 @@ void *session_thread(void *param) {
       while (*(++p_db) != '\n')
         ;
       ++p_db;
-    }
+    } while (p_db < p_end);
   }
 
   /* Close json */
