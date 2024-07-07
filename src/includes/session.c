@@ -88,15 +88,16 @@ void *session_thread(void *param) {
 
   /* find next index */
   uint_fast16_t next_tag_len = tag_len + 1;
-  while (next_tag_len <= MAX_TAG_LEN) {
+  while (1) {
     if (index_g[next_tag_len] != NULL) {
       p_end = index_g[next_tag_len];
       break;
     }
-    ++next_tag_len;
-  }
-  if (next_tag_len > MAX_TAG_LEN) {
-    p_end = map_end_g;
+
+    if (++next_tag_len > MAX_TAG_LEN) {
+      p_end = map_end_g;
+      break;
+    }
   }
 
   if (p_db != NULL) {
@@ -138,7 +139,7 @@ void *session_thread(void *param) {
         }
       }
 
-      if (*(++p_db) == ',' && *p_input == '\0') {
+      if (*(++p_db) == ',') {
 #ifdef DEBUG_V
         printf("Matched\n");
 #endif
