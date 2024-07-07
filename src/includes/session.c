@@ -156,17 +156,15 @@ void *session_thread(void *param) {
        *            ^ *p_db
        */
       lat = (p_db += 2);
-      lat_len = 1;
-      while (*(++p_db) != ',') {
-        ++lat_len;
-      }
+      while (*(++p_db) != ',')
+        ;
+      lat_len = p_db - lat;
 
       /* Get lon */
       lon = ++p_db;
-      lon_len = 1;
-      while (*(++p_db) != ',') {
-        ++lon_len;
-      }
+      while (*(++p_db) != ',')
+        ;
+      lon_len = p_db - lon;
 
       /* Get date */
       /* Current
@@ -201,17 +199,15 @@ void *session_thread(void *param) {
 
       /* Get url_id1 */
       url_id1 = ++p_db;
-      url_id1_len = 1;
-      while (*(++p_db) != ',') {
-        ++url_id1_len;
-      }
+      while (*(++p_db) != ',')
+        ;
+      url_id1_len = p_db - url_id1;
 
       /* Get id */
       id = ++p_db;
-      id_len = 1;
-      while (*(++p_db) != ',') {
-        ++id_len;
-      }
+      while (*(++p_db) != ',')
+        ;
+      id_len = p_db - id;
 
       /* clang-format off */
       len = sprintf(
