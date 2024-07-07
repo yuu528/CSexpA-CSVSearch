@@ -7,7 +7,7 @@ LD=~/buildroot-2024.02.3/output/host/bin/aarch64-linux-g++
 CFLAGS=-c -Wall -pedantic-errors -Ofast -flto
 # CFLAGS=-c -Wall -pedantic-errors -O0 -g
 LDFLAGS=-pthread
-OBJECTS=./src/csvsearch.o ./src/includes/socketutil.o ./src/includes/csvloader.o ./src/includes/extras.o
+OBJECTS=./src/csvsearch.o ./src/includes/csvloader.o ./src/includes/extras.o ./src/includes/session.o ./src/includes/socketutil.o
 EXECUTABLE=csvsearch.out
 
 all: $(EXECUTABLE)
