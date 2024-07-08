@@ -165,10 +165,12 @@ int main(int argc, char *argv[]) {
 
 #ifdef USE_EPOLL
     event_count = epoll_wait(epoll_fd, &ev, 1, -1);
+#ifdef CHECK_EPOLL_ERROR
     if (event_count == -1) {
       perror(MSG_ERR_EPOLL_WAIT);
       exit(1);
     }
+#endif
 
     if (ev.data.fd != sock_listen) {
       continue;
@@ -176,7 +178,20 @@ int main(int argc, char *argv[]) {
 #endif
 
     p_sock_client = malloc(sizeof(int));
-    *p_sock_client = accept(sock_listen, NULL, NULL);
+
+#ifdef CHECK_ACCEPT_ERROR
+    if ((
+#endif
+                *p_sock_client = accept(sock_listen, NULL, NULL)
+#ifdef CHECK_ACCEPT_ERROR
+                    ) < 0) {
+      perror(MSG_ERR_ACCEPT);
+      free(p_sock_client);
+      continue;
+    }
+#else
+        ;
+#endif
 
 #ifdef ENABLE_TIMEOUT
     setsockopt(*p_sock_client, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
@@ -194,17 +209,19 @@ int main(int argc, char *argv[]) {
     setsockopt(*p_sock_client, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
 #endif
 
-    if (*p_sock_client == -1) {
-      perror(MSG_ERR_ACCEPT);
-      free(p_sock_client);
-      continue;
-    }
-
-    if (pthread_create(&th, &pth_attr, session_thread, p_sock_client) != 0) {
+#ifdef CHECK_THREAD_CREATE_ERROR
+    if (
+#endif
+        pthread_create(&th, &pth_attr, session_thread, p_sock_client)
+#ifdef CHECK_THREAD_CREATE_ERROR
+        != 0) {
       perror(MSG_ERR_THREAD_CREATE);
       close(*p_sock_client);
       shutdown(*p_sock_client, SHUT_RDWR);
       free(p_sock_client);
     }
+#else
+        ;
+#endif
   }
 }

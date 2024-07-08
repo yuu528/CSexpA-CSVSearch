@@ -22,11 +22,19 @@ void *session_thread(void *restrict param) {
   int sock = *(int *)param;
   free(param);
 
-  /* Start session */
-  if (recv(sock, buf, RECV_SEND_SIZE, 0) <= SKIP_HEADER_FIRST_LEN) {
+/* Start session */
+#ifdef CHECK_RECV_LENGTH
+  if (
+#endif
+      recv(sock, buf, RECV_SEND_SIZE, 0)
+#ifdef CHECK_RECV_LENGTH
+      <= SKIP_HEADER_FIRST_LEN) {
     RETURN_500(sock);
     FINISH_THREAD(sock);
   }
+#else
+      ;
+#endif
 
   /* Check if it is a valid request */
   /*
@@ -34,10 +42,12 @@ void *session_thread(void *restrict param) {
    *          ^ *p
    */
   char *p = buf + SKIP_HEADER_FIRST_LEN;
+#ifdef CHECK_QUERY_EQUAL
   if (*p != '=') {
     RETURN_400(sock);
     FINISH_THREAD(sock);
   }
+#endif
 
   /* Get tag */
   char *ptag = tag - 1;
@@ -51,9 +61,9 @@ void *session_thread(void *restrict param) {
       URL_DECODE(*ptag, p, URL_DECODE_L);
 #else
       URL_DECODE(*(++ptag), p);
-#endif
+#endif /* ALT_URL_DECODE */
     } else {
-#endif
+#endif /* DISABLE_URL_DECODE */
       *(++ptag) = *p;
 #ifndef DISABLE_URL_DECODE
     }

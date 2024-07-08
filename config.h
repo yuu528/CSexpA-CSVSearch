@@ -18,6 +18,12 @@
 #define ALT_URL_DECODE
 
 /* Connection settings */
+#define CHECK_EPOLL_ERROR         /* Check epoll_create() error */
+#define CHECK_ACCEPT_ERROR        /* Check accept() error */
+#define CHECK_THREAD_CREATE_ERROR /* Check pthread_create() error */
+#define CHECK_RECV_LENGTH         /* Check recv() length */
+#define CHECK_QUERY_EQUAL         /* Check query string '=' */
+#define CHECK_SEND_ERROR          /* Check send() error */
 #define ENABLE_TIMEOUT
 #define ENABLE_TCP_NODELAY
 #define ENABLE_TCP_CORK

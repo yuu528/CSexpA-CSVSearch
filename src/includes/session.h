@@ -35,10 +35,14 @@
   shutdown(sock, SHUT_RDWR);                                                   \
   return NULL
 
+#ifdef CHECK_SEND_ERROR
 #define TRY_SEND(sock, buf, len, flags)                                        \
   if (send(sock, buf, len, flags) < 0) {                                       \
     FINISH_THREAD(sock);                                                       \
   }
+#else
+#define TRY_SEND(sock, buf, len, flags) send(sock, buf, len, flags)
+#endif
 
 #define RETURN_400(sock)                                                       \
   TRY_SEND(sock, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2,          \
