@@ -18,7 +18,7 @@ void *session_thread(void *param) {
   /* Start session */
   if (recv(sock, buf, RECV_SEND_SIZE, 0) <= SKIP_HEADER_FIRST_LEN) {
     RETURN_500(sock);
-    FINISH_THREAD(sock, buf, tag);
+    FINISH_THREAD(sock);
   }
 
   /* Check if it is a valid request */
@@ -29,7 +29,7 @@ void *session_thread(void *param) {
   char *p = buf + SKIP_HEADER_FIRST_LEN;
   if (*p != '=') {
     RETURN_400(sock);
-    FINISH_THREAD(sock, buf, tag);
+    FINISH_THREAD(sock);
   }
 
   /* Get tag */
@@ -64,7 +64,7 @@ void *session_thread(void *param) {
     tag
   );
   /* clang-format on */
-  send(sock, buf, len, SEND_FLAGS);
+  TRY_SEND(sock, buf, len, SEND_FLAGS);
 
   /* Search tag */
   uint_fast16_t tag_len = strlen(tag);
@@ -217,7 +217,7 @@ void *session_thread(void *param) {
       );
       /* clang-format on */
 
-      send(sock, buf, len, SEND_FLAGS);
+      TRY_SEND(sock, buf, len, SEND_FLAGS);
       result_sep = ',';
 
     to_next:
@@ -230,7 +230,7 @@ void *session_thread(void *param) {
 
   /* Close json */
   /* clang-format off */
-  send(
+  TRY_SEND(
     sock,
     "]}" CRLF,
     2 + CRLF_LEN,
@@ -239,5 +239,5 @@ void *session_thread(void *param) {
   /* clang-format on */
 
   /* End session */
-  FINISH_THREAD(sock, buf, tag);
+  FINISH_THREAD(sock);
 }

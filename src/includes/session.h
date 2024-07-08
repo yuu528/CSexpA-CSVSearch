@@ -30,16 +30,23 @@
 
 #endif
 
-#define RETURN_400(sock)                                                       \
-  send(sock, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2, SEND_FLAGS);
-
-#define RETURN_500(sock)                                                       \
-  send(sock, HEADER_500 CRLF CRLF, HEADER_500_LEN + CRLF_LEN * 2, SEND_FLAGS);
-
-#define FINISH_THREAD(sock, buf, tag)                                          \
+#define FINISH_THREAD(sock)                                                    \
   close(sock);                                                                 \
   shutdown(sock, SHUT_RDWR);                                                   \
   return NULL
+
+#define TRY_SEND(sock, buf, len, flags)                                        \
+  if (send(sock, buf, len, flags) < 0) {                                       \
+    FINISH_THREAD(sock);                                                       \
+  }
+
+#define RETURN_400(sock)                                                       \
+  TRY_SEND(sock, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2,          \
+           SEND_FLAGS);
+
+#define RETURN_500(sock)                                                       \
+  TRY_SEND(sock, HEADER_500 CRLF CRLF, HEADER_500_LEN + CRLF_LEN * 2,          \
+           SEND_FLAGS);
 
 extern char *map_g;
 extern off_t file_size_g;
