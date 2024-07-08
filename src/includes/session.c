@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-void *session_thread(void *param) {
+void *session_thread(void *restrict param) {
 #ifdef USE_LARGE_BUFFER
   char buf[RECV_SEND_SIZE_LARGE];
   char *p_buf = buf;
