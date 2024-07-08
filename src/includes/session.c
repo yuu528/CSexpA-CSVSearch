@@ -91,7 +91,7 @@ void *session_thread(void *restrict param) {
 #endif
 
   /* Search tag */
-  uint_fast16_t tag_len = strlen(tag);
+  uint_fast16_t tag_len = ptag - tag;
 
   /* CSV: tag,lat,...
           ^ *p_db */
