@@ -35,6 +35,7 @@
  *   ^ ---------> Move <SKIP_TO_NEXT_LINE_FIRST>
  */
 #define SKIP_TO_NEXT_LINE_FIRST 25
+// #define USE_LARGE_BUFFER
 
 /* Length settings */
 #define MAX_TAG_LEN 370
@@ -52,6 +53,7 @@
 /* Buffer settings */
 #define FILE_BUFFER_SIZE 512
 #define RECV_SEND_SIZE 2048
+#define RECV_SEND_SIZE_LARGE 356 + 137 * MAX_GEOTAG_PER_TAG
 
 /* File delimiter settings */
 #define CSV_DELIM ","

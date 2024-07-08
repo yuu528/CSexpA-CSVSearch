@@ -11,7 +11,14 @@
 #include <unistd.h>
 
 void *session_thread(void *param) {
-  char buf[RECV_SEND_SIZE], tag[MAX_TAG_LEN];
+#ifdef USE_LARGE_BUFFER
+  char buf[RECV_SEND_SIZE_LARGE];
+  char *p_buf = buf;
+#else
+  char buf[RECV_SEND_SIZE];
+#endif
+
+  char tag[MAX_TAG_LEN];
   int sock = *(int *)param;
   free(param);
 
@@ -56,15 +63,22 @@ void *session_thread(void *param) {
 
   /* Start reply */
   /* clang-format off */
-  uint_fast16_t len = sprintf(
-    buf,
-    HEADER_200 CRLF
-    HEADER_CONTENT_TYPE MIME_JSON CRLF CRLF
-    "{" JSON_KEY_TAG ":\"%s\"," JSON_KEY_RESULTS ":[",
-    tag
-  );
+#ifdef USE_LARGE_BUFFER
+  p_buf +=
+#else
+  uint_fast16_t len =
+#endif
+    sprintf(
+      buf,
+      HEADER_200 CRLF
+      HEADER_CONTENT_TYPE MIME_JSON CRLF CRLF
+      "{" JSON_KEY_TAG ":\"%s\"," JSON_KEY_RESULTS ":[",
+      tag
+    );
   /* clang-format on */
+#ifndef USE_LARGE_BUFFER
   TRY_SEND(sock, buf, len, SEND_FLAGS);
+#endif
 
   /* Search tag */
   uint_fast16_t tag_len = strlen(tag);
@@ -201,23 +215,34 @@ void *session_thread(void *param) {
       id_len = p_db - id;
 
       /* clang-format off */
-      len = sprintf(
-        buf,
-        "%c{"
-        JSON_KEY_LAT ":%.*s,"
-        JSON_KEY_LON ":%.*s,"
-        JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
-        JSON_KEY_URL ":\"" URL_FORMAT_STR "\""
-        "}",
-        result_sep,
-        lat_len, lat,
-        lon_len, lon,
-        year, month, day, hour, minute, second,
-        server_id, url_id1_len, url_id1, id_len, id, ++p_db
-      );
+#ifdef USE_LARGE_BUFFER
+      p_buf +=
+#else
+      len =
+#endif
+        sprintf(
+#ifdef USE_LARGE_BUFFER
+          p_buf,
+#else
+          buf,
+#endif
+          "%c{"
+          JSON_KEY_LAT ":%.*s,"
+          JSON_KEY_LON ":%.*s,"
+          JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
+          JSON_KEY_URL ":\"" URL_FORMAT_STR "\""
+          "}",
+          result_sep,
+          lat_len, lat,
+          lon_len, lon,
+          year, month, day, hour, minute, second,
+          server_id, url_id1_len, url_id1, id_len, id, ++p_db
+        );
       /* clang-format on */
 
+#ifndef USE_LARGE_BUFFER
       TRY_SEND(sock, buf, len, SEND_FLAGS);
+#endif
       result_sep = ',';
 
     to_next:
@@ -230,12 +255,18 @@ void *session_thread(void *param) {
 
   /* Close json */
   /* clang-format off */
+#ifdef USE_LARGE_BUFFER
+  *p_buf = ']';
+  *(++p_buf) = '}';
+  TRY_SEND(sock, buf, p_buf - buf + 1, SEND_FLAGS);
+#else
   TRY_SEND(
     sock,
     "]}" CRLF,
     2 + CRLF_LEN,
     SEND_FLAGS
   );
+#endif
   /* clang-format on */
 
   /* End session */
