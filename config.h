@@ -23,11 +23,11 @@
 #define CHECK_RECV_LENGTH         /* Check recv() length */
 #define CHECK_QUERY_EQUAL         /* Check query string '=' */
 #define CHECK_SEND_ERROR          /* Check send() error */
-#define ENABLE_TIMEOUT
+// #define ENABLE_TIMEOUT
 #define ENABLE_TCP_NODELAY
 #define ENABLE_TCP_CORK
 #define DISABLE_LINGER
-#define SEND_NONBLOCK
+// #define SEND_NONBLOCK
 /* Send, recv timeout */
 #define TIMEOUT_SEC 1
 /* Skip first 'GET /?tag' */
