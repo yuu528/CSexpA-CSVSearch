@@ -46,7 +46,7 @@
 #else /* SEND_NONBLOCK */
 #define TRY_SEND(sock, buf, len, flags)                                        \
   while (send(sock, buf, len, flags) < 0) {                                    \
-    if (errno != EINTR)                                                        \
+    if (errno == EINTR)                                                        \
       continue;                                                                \
     FINISH_THREAD(sock);                                                       \
   }
