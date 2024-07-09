@@ -36,13 +36,24 @@
   return NULL
 
 #ifdef CHECK_SEND_ERROR
+#ifdef SEND_NONBLOCK
 #define TRY_SEND(sock, buf, len, flags)                                        \
-  if (send(sock, buf, len, flags) < 0) {                                       \
+  while (send(sock, buf, len, flags) < 0) {                                    \
+    if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)             \
+      continue;                                                                \
     FINISH_THREAD(sock);                                                       \
   }
-#else
+#else /* SEND_NONBLOCK */
+#define TRY_SEND(sock, buf, len, flags)                                        \
+  while (send(sock, buf, len, flags) < 0) {                                    \
+    if (errno != EINTR)                                                        \
+      continue;                                                                \
+    FINISH_THREAD(sock);                                                       \
+  }
+#endif /* SEND_NONBLOCK */
+#else  /* CHECK_SEND_ERROR */
 #define TRY_SEND(sock, buf, len, flags) send(sock, buf, len, flags)
-#endif
+#endif /* CHECK_SEND_ERROR */
 
 #define RETURN_400(sock)                                                       \
   TRY_SEND(sock, HEADER_400 CRLF CRLF, HEADER_400_LEN + CRLF_LEN * 2,          \
