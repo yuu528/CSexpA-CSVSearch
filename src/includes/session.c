@@ -19,6 +19,12 @@ void *session_thread(void *restrict param) {
 #endif
 
   char tag[MAX_TAG_LEN];
+
+#ifndef DISABLE_ESCAPE
+  char tag_esc[MAX_TAG_LEN_ESCAPED];
+  char *p_tag_esc = tag_esc - 1;
+#endif
+
   int sock = *(int *)param;
   free(param);
 
@@ -59,7 +65,7 @@ void *session_thread(void *restrict param) {
       *(++ptag) = 0;
       URL_DECODE(*ptag, p, URL_DECODE_M);
       URL_DECODE(*ptag, p, URL_DECODE_L);
-#else
+#else  /* ALT_URL_DECODE */
       URL_DECODE(*(++ptag), p);
 #endif /* ALT_URL_DECODE */
     } else {
@@ -67,9 +73,19 @@ void *session_thread(void *restrict param) {
       *(++ptag) = *p;
 #ifndef DISABLE_URL_DECODE
     }
-#endif
+#endif /* DISABLE_URL_DECODE */
+
+#ifndef DISABLE_ESCAPE
+    /* escape " */
+    if (*ptag == '"') {
+      *(++p_tag_esc) = '\\';
+    }
+
+    *(++p_tag_esc) = *ptag;
+#endif /* DISABLE_ESCAPE */
   }
   *(++ptag) = '\0';
+  *(++p_tag_esc) = '\0';
 
   /* Start reply */
   /* clang-format off */
@@ -83,7 +99,11 @@ void *session_thread(void *restrict param) {
       HEADER_200 CRLF
       HEADER_CONTENT_TYPE MIME_JSON CRLF CRLF
       "{" JSON_KEY_TAG ":\"%s\"," JSON_KEY_RESULTS ":[",
+#ifdef DISABLE_ESCAPE
       tag
+#else
+      tag_esc
+#endif
     );
   /* clang-format on */
 #ifndef USE_LARGE_BUFFER

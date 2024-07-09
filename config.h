@@ -12,10 +12,9 @@
 #define USE_READ
 
 /* Parsing settings */
-/* Disable URL decoding */
-// #define DISABLE_URL_DECODE
-/* Use alternative method to decode URL */
-#define ALT_URL_DECODE
+// #define DISABLE_URL_DECODE /* Disable URL decoding */
+#define ALT_URL_DECODE /* Use alternative method to decode URL */
+// #define DISABLE_ESCAPE /* Disable escape characters */
 
 /* Connection settings */
 #define CHECK_EPOLL_ERROR         /* Check epoll_create() error */
@@ -45,6 +44,8 @@
 
 /* Length settings */
 #define MAX_TAG_LEN 370
+#define MAX_TAG_LEN_DECODED 285
+#define MAX_TAG_LEN_ESCAPED MAX_TAG_LEN_DECODED + 6
 #define MAX_GEOTAG_PER_TAG 100
 #define MAX_LAT_LON_LEN 16
 #define YEAR_LEN 4
