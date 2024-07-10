@@ -60,6 +60,8 @@
 #define MINUTE_LEN 2
 #define SECOND_LEN 2
 #define SERVER_ID_LEN 1
+#define MAX_URL_ID1_LEN 4
+#define MAX_ID_LEN 10
 #define URL_ID2_LEN 10
 
 /* Buffer settings */
@@ -79,6 +81,7 @@
 #define MSG_INFO_DONE "Done."
 
 #define MSG_ERR_FILE_OPEN "File open error"
+#define MSG_ERR_LEN "Length error"
 #define MSG_ERR_MEM_ALLOC "Memory allocation error"
 #define MSG_ERR_FILE_STAT "File stat error"
 #define MSG_ERR_MMAP "Memory map error"

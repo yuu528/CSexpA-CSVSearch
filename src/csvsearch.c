@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
     printf("Options:\n");
     printf("  -c: Print tag length and exit.\n");
     printf("  -m: Print tags with 100 records per tag limit\n\n");
+    printf("  -b <Output file>: Output csv as binary\n\n");
     printf("CSV file must be pre-processed by convert_csv.sh.\n");
     return 1;
   }
@@ -56,6 +57,14 @@ int main(int argc, char *argv[]) {
     }
 
     print_tag_limit_csv(argv[2]);
+    return 0;
+  } else if (strcmp(argv[1], "-b") == 0) {
+    if (argc < 4) {
+      printf("Usage: %s -b <output path> <csv file>\n", argv[0]);
+      return 1;
+    }
+
+    write_as_bin(argv[3], argv[2]);
     return 0;
   }
 

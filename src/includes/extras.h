@@ -4,5 +4,6 @@
 
 void print_tag_length_csv(char *filename);
 void print_tag_limit_csv(char *filename);
+void write_as_bin(char *filename, char *output);
 
 #endif
