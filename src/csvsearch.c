@@ -125,22 +125,55 @@ int main(int argc, char *argv[]) {
   }
 
   /* Start server */
-  uint_fast8_t sock_listen = tcp_listen(10028);
+  int sock_listen = tcp_listen(10028);
 
   /* Setup pthread attr */
   pthread_attr_t pth_attr;
   pthread_attr_init(&pth_attr);
   pthread_attr_setdetachstate(&pth_attr, PTHREAD_CREATE_DETACHED);
+#ifdef PRE_THREAD
+#ifdef ACCEPT_ON_CHILD
+  int *p_sock;
+  p_sock = malloc(sizeof(int));
+  *p_sock = sock_listen;
 
+  /* Create threads */
+  pthread_t ths[PRE_THREAD_COUNT];
+
+  for (uint_fast16_t i = 0; i < PRE_THREAD_COUNT; ++i) {
+#ifdef CHECK_THREAD_CREATE_ERROR
+    if (
+#endif
+        pthread_create(&ths[i], &pth_attr, session_thread, p_sock)
+#ifdef CHECK_THREAD_CREATE_ERROR
+        != 0) {
+      perror(MSG_ERR_THREAD_CREATE);
+      exit(1);
+    }
+#else
+        ;
+#endif
+  }
+
+  pthread_exit(0);
+#else  /* ACCEPT_ON_CHILD */
+  printf("Not implemented.: Please define ACCEPT_ON_CHILD.\n");
+  exit(1);
+#endif /* ACCEPT_ON_CHILD */
+#else  /* USE_THREAD_POOL */
   /* Setup socket options */
   struct timeval tv;
   tv.tv_sec = TIMEOUT_SEC;
   tv.tv_usec = 0;
 
+#if defined(ENABLE_TCP_NODELAY) || defined(ENABLE_TCP_CORK)
   int optval_true = 1;
+#endif
 
+#ifdef DISABLE_LINGER
   struct linger linger;
   linger.l_onoff = 0;
+#endif
 
   /* Setup epoll */
 #ifdef USE_EPOLL
@@ -224,4 +257,5 @@ int main(int argc, char *argv[]) {
         ;
 #endif
   }
+#endif /* USE_THERAD_POOL */
 }

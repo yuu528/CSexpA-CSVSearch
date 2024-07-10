@@ -4,6 +4,7 @@
 
 #include "../../config.h"
 #include <stdint.h>
+#include <sys/epoll.h>
 #include <unistd.h>
 
 #ifdef SEND_NONBLOCK
@@ -33,7 +34,7 @@
 #define FINISH_THREAD(sock)                                                    \
   close(sock);                                                                 \
   shutdown(sock, SHUT_RDWR);                                                   \
-  return NULL
+  return
 
 #ifdef CHECK_SEND_ERROR
 #ifdef SEND_NONBLOCK

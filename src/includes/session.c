@@ -4,6 +4,8 @@
 #include "tagtypes.h"
 
 #include <errno.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +13,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-void *session_thread(void *restrict param) {
+static inline __attribute__((always_inline)) void session(int sock) {
 #ifdef USE_LARGE_BUFFER
   char buf[RECV_SEND_SIZE_LARGE];
   char *p_buf = buf;
@@ -25,9 +27,6 @@ void *session_thread(void *restrict param) {
   char tag_esc[MAX_TAG_LEN_ESCAPED];
   char *p_tag_esc = tag_esc - 1;
 #endif
-
-  int sock = *(int *)param;
-  free(param);
 
 /* Start session */
 #ifdef CHECK_RECV_LENGTH
@@ -302,4 +301,91 @@ void *session_thread(void *restrict param) {
 
   /* End session */
   FINISH_THREAD(sock);
+}
+
+void *session_thread(void *restrict param) {
+  int sock = *(int *)param;
+
+#ifdef PRE_THREAD
+  /* Setup epoll */
+  int event_count;
+  int epoll_fd = epoll_create1(0);
+
+  if (epoll_fd == -1) {
+    perror(MSG_ERR_EPOLL_CREATE);
+    exit(1);
+  }
+
+  struct epoll_event ev;
+
+  memset(&ev, 0, sizeof(struct epoll_event));
+  ev.events = EPOLLIN | EPOLLET;
+  ev.data.fd = sock;
+  epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock, &ev);
+
+#if defined(ENABLE_TCP_NODELAY) || defined(ENABLE_TCP_CORK)
+  int optval_true = 1;
+#endif
+
+#ifdef DISABLE_LINGER
+  struct linger linger;
+  linger.l_onoff = 0;
+#endif
+
+  int sock_client;
+
+  /* Event loop */
+  while (1) {
+#ifdef CHECK_EPOLL_ERROR
+    if (
+#endif /* CHECK_EPOLL_ERROR */
+        epoll_wait(epoll_fd, &ev, 1, -1)
+#ifdef CHECK_EPOLL_ERROR
+        == -1) {
+      perror(MSG_ERR_EPOLL_WAIT);
+      exit(1);
+    }
+#else  /* CHECK_EPOLL_ERROR */
+        ;
+#endif /* CHECK_EPOLL_ERROR */
+
+    if (ev.data.fd != sock) {
+      continue;
+    }
+
+#ifdef CHECK_ACCEPT_ERROR
+    if ((
+#endif
+            sock_client = accept(sock, NULL, NULL)
+#ifdef CHECK_ACCEPT_ERROR
+                ) < 0) {
+      perror(MSG_ERR_ACCEPT);
+      continue;
+    }
+#else
+        ;
+#endif
+
+#ifdef ENABLE_TIMEOUT
+    setsockopt(sock_client, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv));
+    setsockopt(sock_client, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
+#endif
+#ifdef ENABLE_TCP_NODELAY
+    setsockopt(sock_client, IPPROTO_TCP, TCP_NODELAY, &optval_true, 1);
+#endif
+#ifdef ENABLE_TCP_CORK
+    setsockopt(sock_client, IPPROTO_TCP, TCP_CORK, &optval_true, 1);
+#endif
+#ifdef DISABLE_LINGER
+    setsockopt(sock_client, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
+#endif
+
+    session(sock_client);
+  }
+#else
+  free(param);
+  session(sock);
+#endif
+
+  return NULL;
 }

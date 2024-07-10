@@ -7,6 +7,11 @@
 // #define DEBUG_V
 // #define DEBUG_VV
 
+/* Thread settings */
+// #define PRE_THREAD
+#define PRE_THREAD_COUNT 100
+#define ACCEPT_ON_CHILD /* accept() on child or main thread */
+
 /* File load settings */
 /* Use read() instead of mmap() */
 #define USE_READ
