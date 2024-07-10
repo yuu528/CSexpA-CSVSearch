@@ -20,6 +20,7 @@
 // #define DISABLE_URL_DECODE /* Disable URL decoding */
 #define ALT_URL_DECODE /* Use alternative method to decode URL */
 // #define DISABLE_ESCAPE /* Disable escape characters */
+#define ALT_INDEX /* Use alternative method to create index */
 
 /* Connection settings */
 #define CHECK_EPOLL_ERROR         /* Check epoll_create() error */

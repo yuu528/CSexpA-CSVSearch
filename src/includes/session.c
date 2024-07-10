@@ -1,6 +1,7 @@
 #include "session.h"
 
 #include "../../config.h"
+#include "csvloader.h"
 #include "tagtypes.h"
 
 #include <errno.h>
@@ -115,7 +116,13 @@ static inline __attribute__((always_inline)) void session(int sock) {
 
   /* CSV: tag,lat,...
           ^ *p_db */
+#ifdef ALT_INDEX
+  /* Set index as next_tag_len to use for finding next index */
+  int next_tag_len = GET_INDEX_KEY(tag_len, *tag_esc);
+  char *p_db = index_g[next_tag_len++];
+#else
   char *p_db = index_g[tag_len];
+#endif
   char *p_input;
   char *p_end;
   char *lat, *lon, *year, *month, *day, *hour, *minute, *second, *server_id,
@@ -124,7 +131,9 @@ static inline __attribute__((always_inline)) void session(int sock) {
   char result_sep = ' ';
 
   /* find next index */
+#ifndef ALT_INDEX
   uint_fast16_t next_tag_len = tag_len + 1;
+#endif
   while (1) {
     if (index_g[next_tag_len] != NULL) {
       p_end = index_g[next_tag_len];
