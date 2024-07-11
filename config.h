@@ -9,8 +9,10 @@
 
 /* Thread settings */
 #define PRE_THREAD
-#define PRE_THREAD_COUNT 4
-#define ACCEPT_ON_CHILD /* accept() on child or main thread */
+#define PRE_THREAD_COUNT 128
+// #define ACCEPT_ON_CHILD /* accept() on child or main thread */
+#define SOCK_QUEUE_SIZE                                                        \
+  1024 /* Needs PRE_THREAD and disabling ACCEPT_ON_CHILD */
 
 /* File load settings */
 /* Use read() instead of mmap() */
@@ -86,6 +88,7 @@
 #define MSG_ERR_MEM_ALLOC "Memory allocation error"
 #define MSG_ERR_FILE_STAT "File stat error"
 #define MSG_ERR_MMAP "Memory map error"
+#define MSG_ERR_POLL "Poll error"
 #define MSG_ERR_EPOLL_CREATE "Epoll create error"
 #define MSG_ERR_EPOLL_WAIT "Epoll wait error"
 #define MSG_ERR_ACCEPT "Accept error"

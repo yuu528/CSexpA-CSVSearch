@@ -76,6 +76,14 @@ extern uint_fast16_t offset_g;
 extern char hex_table_g[256];
 #endif
 
+#ifndef ACCEPT_ON_CHILD
+extern pthread_mutex_t mutex_g;
+extern pthread_cond_t cond_g;
+extern int sock_queue_g[SOCK_QUEUE_SIZE];
+extern uint_fast16_t sock_queue_head_g;
+extern uint_fast16_t sock_queue_tail_g;
+#endif
+
 void *session_thread(void *param);
 
 #endif

@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -316,6 +317,7 @@ void *session_thread(void *restrict param) {
   int sock = *(int *)param;
 
 #ifdef PRE_THREAD
+#ifdef ACCEPT_ON_CHILD
   /* Setup epoll */
   int event_count;
   int epoll_fd = epoll_create1(0);
@@ -391,7 +393,28 @@ void *session_thread(void *restrict param) {
 
     session(sock_client);
   }
-#else
+#else /* ACCEPT_ON_CHILD */
+  int client_sock;
+  int next_head;
+
+  while (1) {
+    pthread_mutex_lock(&mutex_g);
+    pthread_cond_wait(&cond_g, &mutex_g);
+
+    /* Pop from queue */
+    next_head = sock_queue_head_g + 1;
+    if (next_head >= SOCK_QUEUE_SIZE) {
+      next_head = 0;
+    }
+
+    client_sock = sock_queue_g[next_head];
+    sock_queue_head_g = next_head;
+    pthread_mutex_unlock(&mutex_g);
+
+    session(client_sock);
+  }
+#endif
+#else /* PRE_THREAD */
   free(param);
   session(sock);
 #endif

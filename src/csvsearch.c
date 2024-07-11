@@ -7,6 +7,7 @@
 #include <inttypes.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -21,6 +22,14 @@ char *map_g;
 off_t file_size_g;
 char *map_end_g;
 char **index_g;
+
+#ifndef ACCEPT_ON_CHILD
+pthread_mutex_t mutex_g;
+pthread_cond_t cond_g = PTHREAD_COND_INITIALIZER;
+int sock_queue_g[SOCK_QUEUE_SIZE];
+uint_fast16_t sock_queue_head_g = -1;
+uint_fast16_t sock_queue_tail_g = -1;
+#endif
 
 #ifdef ALT_URL_DECODE
 uint_fast8_t *hex_table_g;
@@ -140,36 +149,7 @@ int main(int argc, char *argv[]) {
   pthread_attr_t pth_attr;
   pthread_attr_init(&pth_attr);
   pthread_attr_setdetachstate(&pth_attr, PTHREAD_CREATE_DETACHED);
-#ifdef PRE_THREAD
-#ifdef ACCEPT_ON_CHILD
-  int *p_sock;
-  p_sock = malloc(sizeof(int));
-  *p_sock = sock_listen;
 
-  /* Create threads */
-  pthread_t ths[PRE_THREAD_COUNT];
-
-  for (uint_fast16_t i = 0; i < PRE_THREAD_COUNT; ++i) {
-#ifdef CHECK_THREAD_CREATE_ERROR
-    if (
-#endif
-        pthread_create(&ths[i], &pth_attr, session_thread, p_sock)
-#ifdef CHECK_THREAD_CREATE_ERROR
-        != 0) {
-      perror(MSG_ERR_THREAD_CREATE);
-      exit(1);
-    }
-#else
-        ;
-#endif
-  }
-
-  pthread_exit(0);
-#else  /* ACCEPT_ON_CHILD */
-  printf("Not implemented.: Please define ACCEPT_ON_CHILD.\n");
-  exit(1);
-#endif /* ACCEPT_ON_CHILD */
-#else  /* USE_THREAD_POOL */
   /* Setup socket options */
   struct timeval tv;
   tv.tv_sec = TIMEOUT_SEC;
@@ -184,6 +164,105 @@ int main(int argc, char *argv[]) {
   linger.l_onoff = 0;
 #endif
 
+#ifdef PRE_THREAD
+  int *p_sock;
+  p_sock = malloc(sizeof(int));
+  *p_sock = sock_listen;
+
+#ifndef ACCEPT_ON_CHILD
+  pthread_mutex_init(&mutex_g, NULL);
+#endif /* ACCEPT_ON_CHILD */
+
+  /* Create threads */
+  pthread_t ths[PRE_THREAD_COUNT];
+
+  for (uint_fast16_t i = 0; i < PRE_THREAD_COUNT; ++i) {
+#ifdef CHECK_THREAD_CREATE_ERROR
+    if (
+#endif
+#ifdef ACCEPT_ON_CHILD
+        pthread_create(&ths[i], &pth_attr, session_thread, p_sock)
+#else  /* ACCEPT_ON_CHILD */
+    pthread_create(&ths[i], &pth_attr, session_thread, NULL)
+#endif /* ACCEPT_ON_CHILD */
+#ifdef CHECK_THREAD_CREATE_ERROR
+        != 0) {
+      perror(MSG_ERR_THREAD_CREATE);
+      exit(1);
+    }
+#else
+        ;
+#endif
+  }
+#ifdef ACCEPT_ON_CHILD
+  pthread_exit(0);
+#else /* ACCEPT_ON_CHILD */
+  struct pollfd fds[1];
+
+  fds[0].fd = sock_listen;
+  fds[0].events = POLLIN;
+  fds[0].revents = 0;
+
+  int sock_tmp, next_tail;
+
+  while (1) {
+    if (poll(fds, 1, -1) < 0) {
+      perror(MSG_ERR_POLL);
+      exit(1);
+    }
+
+    /* received */
+    if (fds[0].revents & POLLIN) {
+
+#ifdef CHECK_ACCEPT_ERROR
+      if ((
+#endif
+              sock_tmp = accept(sock_listen, NULL, NULL)
+#ifdef CHECK_ACCEPT_ERROR
+                  ) < 0) {
+        perror(MSG_ERR_ACCEPT);
+        continue;
+      }
+#else
+          ;
+#endif
+
+#ifdef ENABLE_TIMEOUT
+      setsockopt(sock_tmp, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv));
+      setsockopt(sock_tmp, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
+#endif
+#ifdef ENABLE_TCP_NODELAY
+      setsockopt(sock_tmp, IPPROTO_TCP, TCP_NODELAY, &optval_true, 1);
+#endif
+#ifdef ENABLE_TCP_CORK
+      setsockopt(sock_tmp, IPPROTO_TCP, TCP_CORK, &optval_true, 1);
+#endif
+#ifdef DISABLE_LINGER
+      setsockopt(sock_tmp, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
+#endif
+
+      /* Add to queue */
+      pthread_mutex_lock(&mutex_g);
+      if (sock_queue_tail_g >= SOCK_QUEUE_SIZE - 1) {
+        sock_queue_tail_g = -1;
+      }
+
+      next_tail = sock_queue_tail_g + 1;
+
+      if (next_tail == sock_queue_head_g) {
+        pthread_mutex_unlock(&mutex_g);
+        continue;
+      }
+
+      sock_queue_g[next_tail] = sock_tmp;
+      sock_queue_tail_g = next_tail;
+
+      pthread_cond_signal(&cond_g);
+      pthread_mutex_unlock(&mutex_g);
+    }
+  }
+#endif /* ACCEPT_ON_CHILD */
+#else  /* USE_THREAD_POOL */
   /* Setup epoll */
 #ifdef USE_EPOLL
   int event_count;
