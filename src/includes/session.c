@@ -109,7 +109,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
     );
   /* clang-format on */
 #ifndef USE_LARGE_BUFFER
-  TRY_SEND(sock, buf, len, SEND_FLAGS);
+  TRY_SEND(sock, buf, len, SEND_FLAGS | MSG_MORE);
 #endif
 
   /* Search tag */
@@ -281,7 +281,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
       /* clang-format on */
 
 #ifndef USE_LARGE_BUFFER
-      TRY_SEND(sock, buf, len, SEND_FLAGS);
+      TRY_SEND(sock, buf, len, SEND_FLAGS | MSG_MORE);
 #endif
       result_sep = ',';
 
