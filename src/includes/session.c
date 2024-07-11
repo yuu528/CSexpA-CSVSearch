@@ -90,28 +90,6 @@ static inline __attribute__((always_inline)) void session(int sock) {
   *(++p_tag_esc) = '\0';
 
   /* Start reply */
-  /* clang-format off */
-#ifdef USE_LARGE_BUFFER
-  p_buf +=
-#else
-  uint_fast16_t len =
-#endif
-    sprintf(
-      buf,
-      HEADER_200 CRLF
-      HEADER_CONTENT_TYPE MIME_JSON CRLF CRLF
-      "{" JSON_KEY_TAG ":\"%s\"," JSON_KEY_RESULTS ":[",
-#ifdef DISABLE_ESCAPE
-      tag
-#else
-      tag_esc
-#endif
-    );
-  /* clang-format on */
-#ifndef USE_LARGE_BUFFER
-  TRY_SEND(sock, buf, len, SEND_FLAGS | MSG_MORE);
-#endif
-
   /* Search tag */
   uint_fast16_t tag_len = ptag - tag;
 
@@ -129,6 +107,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
   char *lat, *lon, *year, *month, *day, *hour, *minute, *second, *server_id,
       *url_id1, *id;
   int lat_len, lon_len, url_id1_len, id_len;
+  uint_fast16_t reply_len;
   char result_sep = ' ';
 
   /* find next index */
@@ -182,7 +161,10 @@ static inline __attribute__((always_inline)) void session(int sock) {
 #endif
         if (*(++p_db) != *p_input) {
           /* Not matched */
-          p_db += SKIP_TO_NEXT_LINE_FIRST;
+          while (*(++p_db) != ',')
+            ;
+          reply_len = *((uint_fast16_t *)(++p_db));
+          p_db += sizeof(uint_fast16_t);
           goto to_next;
         }
       }
@@ -191,123 +173,24 @@ static inline __attribute__((always_inline)) void session(int sock) {
       printf("Matched\n");
 #endif
       /* Matched */
-      /* Get lat */
-      /* Current
-       *     tag,lat,...
-       *        ^ *p_db
-       *
-       * Skip to ','
-       *     tag,lat,...
-       *            ^ *p_db
-       */
-      lat = (p_db += 2);
-      while (*(++p_db) != ',')
-        ;
-      lat_len = p_db - lat;
+      p_db += 2;
+      reply_len = *((uint_fast16_t *)p_db);
 
-      /* Get lon */
-      lon = ++p_db;
-      while (*(++p_db) != ',')
-        ;
-      lon_len = p_db - lon;
-
-      /* Get date */
-      /* Current
-       *     tag,lat,lon,YYYYMMDDHHMMSS,...
-       *                ^ *p_db
-       *
-       * Year
-       *                     v *p_db
-       *     tag,lat,lon,YYYYMMDDHHMMSS,...
-       *                 ^ *year
-       * ...
-       * Second
-       *                               v *p_db
-       *     tag,lat,lon,YYYYMMDDHHMMSS...
-       *                             ^ *second
-       */
-      year = ++p_db;
-      p_db += YEAR_LEN;
-      month = p_db;
-      p_db += MONTH_LEN;
-      day = p_db;
-      p_db += DAY_LEN;
-      hour = p_db;
-      p_db += HOUR_LEN;
-      minute = p_db;
-      p_db += MINUTE_LEN;
-      second = p_db;
-      p_db += SECOND_LEN;
-
-      /* Get server_id */
-      server_id = p_db;
-
-      /* Get url_id1 */
-      url_id1 = ++p_db;
-      while (*(++p_db) != ',')
-        ;
-      url_id1_len = p_db - url_id1;
-
-      /* Get id */
-      id = ++p_db;
-      while (*(++p_db) != ',')
-        ;
-      id_len = p_db - id;
-
-      /* clang-format off */
-#ifdef USE_LARGE_BUFFER
-      p_buf +=
-#else
-      len =
-#endif
-        sprintf(
-#ifdef USE_LARGE_BUFFER
-          p_buf,
-#else
-          buf,
-#endif
-          "%c{"
-          JSON_KEY_LAT ":%.*s,"
-          JSON_KEY_LON ":%.*s,"
-          JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
-          JSON_KEY_URL ":\"" URL_FORMAT_STR "\""
-          "}",
-          result_sep,
-          lat_len, lat,
-          lon_len, lon,
-          year, month, day, hour, minute, second,
-          server_id, url_id1_len, url_id1, id_len, id, ++p_db
-        );
-      /* clang-format on */
-
-#ifndef USE_LARGE_BUFFER
-      TRY_SEND(sock, buf, len, SEND_FLAGS | MSG_MORE);
-#endif
-      result_sep = ',';
+      p_db += sizeof(uint_fast16_t);
+      TRY_SEND(sock, p_db, reply_len, SEND_FLAGS);
+      FINISH_THREAD(sock);
 
     to_next:
-      /* Skip to next line */
-      while (*(++p_db) != '\n')
-        ;
-      ++p_db;
+      p_db += reply_len;
     } while (p_db < p_end);
   }
 
-  /* Close json */
-  /* clang-format off */
-#ifdef USE_LARGE_BUFFER
-  *p_buf = ']';
-  *(++p_buf) = '}';
-  TRY_SEND(sock, buf, p_buf - buf + 1, SEND_FLAGS);
-#else
-  TRY_SEND(
-    sock,
-    "]}" CRLF,
-    2 + CRLF_LEN,
-    SEND_FLAGS
-  );
-#endif
-  /* clang-format on */
+  /* Not found */
+  reply_len = sprintf(buf,
+                      HEADER_200 CRLF HEADER_CONTENT_TYPE MIME_JSON CRLF CRLF
+                      "{" JSON_KEY_TAG ":\"%s\"," JSON_KEY_RESULTS ":[]}",
+                      tag_esc);
+  send(sock, buf, reply_len, SEND_FLAGS);
 
   /* End session */
   FINISH_THREAD(sock);

@@ -1,5 +1,7 @@
 #include "extras.h"
+
 #include "../../config.h"
+#include "tagtypes.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -67,42 +69,77 @@ void write_as_bin(char *filename, char *output) {
   }
 
   char buf[FILE_BUFFER_SIZE];
-  int len = 0;
-  char *ptok, *pnext;
-  char *pad = "\0";
-
-  int lengths[6] = {MAX_TAG_LEN,
-                    MAX_LAT_LON_LEN,
-                    MAX_LAT_LON_LEN,
-                    YEAR_LEN + MONTH_LEN + DAY_LEN + HOUR_LEN + MINUTE_LEN +
-                        SECOND_LEN + SERVER_ID_LEN + MAX_URL_ID1_LEN,
-                    MAX_ID_LEN,
-                    URL_ID2_LEN};
+  char tag[MAX_TAG_LEN] = "";
+  char *ptok, *pnext, *year, *month, *day, *hour, *minute, *second, *server_id;
+  uint_fast16_t len = 0;
+  long pos_ret = 0;
+  long pos_tmp = 0;
 
   while (fgets(buf, FILE_BUFFER_SIZE, fp) != NULL) {
-    /* Remove \n */
-    buf[strlen(buf) - 1] = '\0';
-
     ptok = strtok_r(buf, CSV_DELIM, &pnext);
 
-    /* Foreach with columns */
-    for (int i = 0; i < 6; i++) {
-      len = strlen(ptok);
+    if (strcmp(tag, ptok) != 0) {
+      if (len != 0) {
+        len += fprintf(fp_out, "]}\n");
 
-      if (len > lengths[i]) {
-        fprintf(stderr, MSG_ERR_LEN ": Column: %d, %d > %d, Field: %s\n", i,
-                len, lengths[i], ptok);
-        return;
+        /* Write len */
+        pos_tmp = ftell(fp_out);
+        fseek(fp_out, pos_ret, SEEK_SET);
+        fwrite(&len, sizeof(uint_fast16_t), 1, fp_out);
+        fseek(fp_out, pos_tmp, SEEK_SET);
       }
 
-      fwrite(ptok, sizeof(char), len, fp_out);
+      strcpy(tag, ptok);
 
-      /* Pad with \0 */
-      for (int j = len; j < lengths[i]; j++) {
-        fwrite(pad, sizeof(char), 1, fp_out);
-      }
+      /* Write tag */
+      fprintf(fp_out, "%s,", tag);
 
-      ptok = strtok_r(NULL, CSV_DELIM, &pnext);
+      /* Keep space for len */
+      pos_ret = ftell(fp_out);
+      fseek(fp_out, sizeof(uint_fast16_t), SEEK_CUR);
+
+      /* clang-format off */
+      len = fprintf(
+        fp_out,
+        HEADER_200 CRLF
+        HEADER_CONTENT_TYPE MIME_JSON CRLF CRLF
+        "{" JSON_KEY_TAG ":\"%s\"," JSON_KEY_RESULTS ":[",
+        tag
+      );
+      /* clang-format on */
+    } else {
+      len += fprintf(fp_out, ",");
     }
+
+    /* Write results */
+    /* clang-format off */
+    len += fprintf(
+      fp_out,
+      "{"
+      JSON_KEY_LAT ":%s,"
+      JSON_KEY_LON ":%s,",
+      strtok_r(NULL, CSV_DELIM, &pnext),
+      strtok_r(NULL, CSV_DELIM, &pnext)
+    );
+
+    /* Write date */
+    year = strtok_r(NULL, CSV_DELIM, &pnext);
+    month = year + YEAR_LEN;
+    day = month + MONTH_LEN;
+    hour = day + DAY_LEN;
+    minute = hour + HOUR_LEN;
+    second = minute + MINUTE_LEN;
+    server_id = second + SECOND_LEN;
+
+    len += fprintf(
+      fp_out,
+      JSON_KEY_DATE ":\"" DATE_FORMAT_STR "\","
+      JSON_KEY_URL ":\"http://farm%.1s.static.flickr.com/%s/%s_%s.jpg\"}",
+      year, month, day, hour, minute, second,
+      server_id, server_id + 1,
+      strtok_r(NULL, CSV_DELIM, &pnext),
+      pnext
+    );
+    /* clang-format on */
   }
 }

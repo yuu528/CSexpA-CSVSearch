@@ -17,3 +17,6 @@ sed -E 's@^([0-9]{,10}),([^,]*),"([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0
 
 echo 'Limiting 100 records per geotag...'
 ./csvsearch.out -m geotag/merged_sorted_by_len_date_min.csv >geotag/merged_sorted_by_len_date_min_100.csv
+
+echo 'Creating binary...'
+./csvsearch.out -b geotag/data.bin geotag/merged_sorted_by_len_date_min_100.csv

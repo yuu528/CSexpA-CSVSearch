@@ -82,6 +82,7 @@ char **create_index(char *map, off_t file_size) {
   char *p = map;
   char *end = map + file_size - 1;
   uint_fast16_t tag_len = 0;
+  uint_fast16_t reply_len = 0;
 
 #ifdef ALT_INDEX
   int alt_index;
@@ -105,12 +106,10 @@ char **create_index(char *map, off_t file_size) {
     }
 #endif
 
-    p += tag_len;
-
     /* Skip to next line */
-    while (*(++p) != '\n')
-      ;
-    ++p;
+    p += tag_len + 1;
+    reply_len = *((uint_fast16_t *)p);
+    p += sizeof(uint_fast16_t) + reply_len;
   }
 
   return index;
