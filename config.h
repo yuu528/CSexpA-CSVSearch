@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+#define MEASURE_TIME
+
 /* Thread settings */
 #define PRE_THREAD
 #define PRE_THREAD_COUNT 128

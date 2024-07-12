@@ -20,10 +20,22 @@
   result = hex_table_g[*((uint16_t *)(++p)) - offset_g];                       \
   ++p;
 
+#ifdef MEASURE_TIME
+#define FINISH_THREAD(sock)                                                    \
+  close(sock);                                                                 \
+  shutdown(sock, SHUT_RDWR);                                                   \
+  struct timespec ts_end;                                                      \
+  clock_gettime(CLOCK_MONOTONIC, &ts_end);                                     \
+  printf("Tag: %s, Response time: %fs\n", tag_esc,                             \
+         (ts_end.tv_sec - ts_start.tv_sec) +                                   \
+             ((ts_end.tv_nsec - ts_start.tv_nsec) * 1e-9));                    \
+  return
+#else
 #define FINISH_THREAD(sock)                                                    \
   close(sock);                                                                 \
   shutdown(sock, SHUT_RDWR);                                                   \
   return
+#endif
 
 #ifdef CHECK_SEND_ERROR
 #ifdef SEND_NONBLOCK

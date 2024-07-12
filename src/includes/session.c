@@ -16,6 +16,11 @@
 #include <unistd.h>
 
 static inline __attribute__((always_inline)) void session(int sock) {
+#ifdef MEASURE_TIME
+  struct timespec ts_start;
+  clock_gettime(CLOCK_MONOTONIC, &ts_start);
+#endif
+
 #ifdef USE_LARGE_BUFFER
   char buf[RECV_SEND_SIZE_LARGE];
   char *p_buf = buf;
