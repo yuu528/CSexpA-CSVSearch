@@ -30,25 +30,9 @@ off_t load_csv(char *filename, char **map, long *map_size) {
   }
   file_size = st.st_size;
 
-#ifdef USE_READ
   *map = (char *)malloc(file_size + 1);
   read(fd, *map, file_size);
   *(*map + file_size) = '\0';
-#else
-  int page_size;
-  /* Calc map size */
-  page_size = getpagesize();
-  *map_size = (file_size / page_size + 1) * page_size;
-
-  /* Map file */
-  *map = (char *)mmap(NULL, *map_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE,
-                      fd, 0);
-
-  if (*map == MAP_FAILED) {
-    perror(MSG_ERR_MMAP);
-    exit(1);
-  }
-#endif
 
   close(fd);
 
@@ -56,11 +40,7 @@ off_t load_csv(char *filename, char **map, long *map_size) {
 }
 
 char **create_index(char *map, off_t file_size) {
-#ifdef ALT_INDEX
-  char **index = malloc(sizeof(char *) * MAX_TAG_LEN * 256);
-#else
-  char **index = malloc(sizeof(char *) * MAX_TAG_LEN);
-#endif
+  char **index = malloc(INDEX_SIZE * sizeof(char *));
 
   if (index == NULL) {
     perror(MSG_ERR_MEM_ALLOC);
@@ -68,14 +48,7 @@ char **create_index(char *map, off_t file_size) {
   }
 
   /* Initialize */
-  for (uint_fast16_t i = 0; i <
-#ifdef ALT_INDEX
-                            MAX_TAG_LEN * 256
-#else
-                            MAX_TAG_LEN
-#endif
-       ;
-       i++) {
+  for (uint_fast16_t i = 0; i < INDEX_SIZE; i++) {
     index[i] = NULL;
   }
 
@@ -84,9 +57,7 @@ char **create_index(char *map, off_t file_size) {
   uint_fast16_t tag_len = 0;
   uint_fast16_t reply_len = 0;
 
-#ifdef ALT_INDEX
   int alt_index;
-#endif
 
   while (p < end && tag_len < MAX_TAG_LEN) {
     /* Count tag length */
@@ -94,17 +65,11 @@ char **create_index(char *map, off_t file_size) {
     while (*(p + (++tag_len)) != ',')
       ;
 
-/* Store tag index */
-#ifdef ALT_INDEX
+    /* Store tag index */
     alt_index = GET_INDEX_KEY(tag_len, *p);
     if (index[alt_index] == NULL) {
       index[alt_index] = p;
     }
-#else
-    if (index[tag_len] == NULL) {
-      index[tag_len] = p;
-    }
-#endif
 
     /* Skip to next line */
     p += tag_len + 1;

@@ -2,11 +2,6 @@
 
 #define _H_CONFIG_
 
-/* Debug options */
-// #define DEBUG
-// #define DEBUG_V
-// #define DEBUG_VV
-
 /* Thread settings */
 #define PRE_THREAD
 #define PRE_THREAD_COUNT 128
@@ -14,15 +9,9 @@
 #define SOCK_QUEUE_SIZE                                                        \
   1024 /* Needs PRE_THREAD and disabling ACCEPT_ON_CHILD */
 
-/* File load settings */
-/* Use read() instead of mmap() */
-#define USE_READ
-
 /* Parsing settings */
 // #define DISABLE_URL_DECODE /* Disable URL decoding */
-#define ALT_URL_DECODE /* Use alternative method to decode URL */
 // #define DISABLE_ESCAPE /* Disable escape characters */
-#define ALT_INDEX /* Use alternative method to create index */
 
 /* Connection settings */
 #define CHECK_EPOLL_ERROR         /* Check epoll_create() error */
@@ -66,6 +55,9 @@
 #define MAX_URL_ID1_LEN 4
 #define MAX_ID_LEN 10
 #define URL_ID2_LEN 10
+
+#define INDEX_SIZE MAX_TAG_LEN * 256 /* 256: max value of uint8 */
+#define INDEX_TYPE uint8_t
 
 /* Buffer settings */
 #define FILE_BUFFER_SIZE 512

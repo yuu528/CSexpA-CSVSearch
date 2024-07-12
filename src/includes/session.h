@@ -16,20 +16,9 @@
 /* result <- encoded char
  * m = URL_DECODE_M or URL_DECODE_L
  * */
-
-#ifdef ALT_URL_DECODE
-
 #define URL_DECODE(result, p)                                                  \
   result = hex_table_g[*((uint16_t *)(++p)) - offset_g];                       \
   ++p;
-
-#else
-
-#define URL_DECODE(result, p, m) result += hex_table_g[(int)*(++p)] << m;
-#define URL_DECODE_M 4
-#define URL_DECODE_L 0
-
-#endif
 
 #define FINISH_THREAD(sock)                                                    \
   close(sock);                                                                 \
@@ -69,12 +58,8 @@ extern off_t file_size_g;
 extern char *map_end_g;
 extern char **index_g;
 
-#ifdef ALT_URL_DECODE
 extern uint_fast8_t *hex_table_g;
 extern uint_fast16_t offset_g;
-#else
-extern char hex_table_g[256];
-#endif
 
 #ifndef ACCEPT_ON_CHILD
 extern pthread_mutex_t mutex_g;

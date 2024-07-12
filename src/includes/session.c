@@ -63,13 +63,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
 #ifndef DISABLE_URL_DECODE
     /* url decode */
     if (*p == '%') {
-#ifndef ALT_URL_DECODE
-      *(++ptag) = 0;
-      URL_DECODE(*ptag, p, URL_DECODE_M);
-      URL_DECODE(*ptag, p, URL_DECODE_L);
-#else  /* ALT_URL_DECODE */
       URL_DECODE(*(++ptag), p);
-#endif /* ALT_URL_DECODE */
     } else {
 #endif /* DISABLE_URL_DECODE */
       *(++ptag) = *p;
@@ -95,25 +89,14 @@ static inline __attribute__((always_inline)) void session(int sock) {
 
   /* CSV: tag,lat,...
           ^ *p_db */
-#ifdef ALT_INDEX
   /* Set index as next_tag_len to use for finding next index */
   int next_tag_len = GET_INDEX_KEY(tag_len, *tag_esc);
   char *p_db = index_g[next_tag_len++];
-#else
-  char *p_db = index_g[tag_len];
-#endif
   char *p_input;
   char *p_end;
-  char *lat, *lon, *year, *month, *day, *hour, *minute, *second, *server_id,
-      *url_id1, *id;
-  int lat_len, lon_len, url_id1_len, id_len;
   uint_fast16_t reply_len;
-  char result_sep = ' ';
 
   /* find next index */
-#ifndef ALT_INDEX
-  uint_fast16_t next_tag_len = tag_len + 1;
-#endif
   while (1) {
     if (index_g[next_tag_len] != NULL) {
       p_end = index_g[next_tag_len];
@@ -128,10 +111,6 @@ static inline __attribute__((always_inline)) void session(int sock) {
 
   if (p_db != NULL) {
     do {
-#ifdef DEBUG_V
-      printf("p_db: %.*s\n", tag_len, p_db);
-#endif
-
       /* Check tag */
       /* first
        *     tag,lat,...
@@ -156,9 +135,6 @@ static inline __attribute__((always_inline)) void session(int sock) {
 
       --p_db;
       while (*(++p_input) != '\0') {
-#ifdef DEBUG_VV
-        printf("%c %c\n", *(p_db + 1), *p_input);
-#endif
         if (*(++p_db) != *p_input) {
           /* Not matched */
           while (*(++p_db) != ',')
@@ -169,9 +145,6 @@ static inline __attribute__((always_inline)) void session(int sock) {
         }
       }
 
-#ifdef DEBUG_V
-      printf("Matched\n");
-#endif
       /* Matched */
       p_db += 2;
       reply_len = *((uint_fast16_t *)p_db);
