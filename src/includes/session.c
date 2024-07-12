@@ -90,7 +90,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
   /* CSV: tag,lat,...
           ^ *p_db */
   /* Set index as next_tag_len to use for finding next index */
-  int next_tag_len = GET_INDEX_KEY(tag_len, *tag_esc);
+  int next_tag_len = GET_INDEX_KEY(tag_len, tag_esc);
   char *p_db = index_g[next_tag_len++];
   char *p_input;
   char *p_end;

@@ -2,6 +2,8 @@
 
 #define _H_CONFIG_
 
+#include <stdint.h>
+
 /* Thread settings */
 #define PRE_THREAD
 #define PRE_THREAD_COUNT 128
@@ -56,8 +58,9 @@
 #define MAX_ID_LEN 10
 #define URL_ID2_LEN 10
 
-#define INDEX_SIZE MAX_TAG_LEN * 256 /* 256: max value of uint8 */
-#define INDEX_TYPE uint8_t
+#define INDEX_SIZE_FACTOR UINT16_MAX
+#define INDEX_SIZE MAX_TAG_LEN *INDEX_SIZE_FACTOR
+#define INDEX_TYPE uint16_t
 
 /* Buffer settings */
 #define FILE_BUFFER_SIZE 512

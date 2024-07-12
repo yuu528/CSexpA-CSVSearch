@@ -66,7 +66,7 @@ char **create_index(char *map, off_t file_size) {
       ;
 
     /* Store tag index */
-    alt_index = GET_INDEX_KEY(tag_len, *p);
+    alt_index = GET_INDEX_KEY(tag_len, p);
     if (index[alt_index] == NULL) {
       index[alt_index] = p;
     }
