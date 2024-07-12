@@ -86,7 +86,10 @@ static inline __attribute__((always_inline)) void session(int sock) {
 #endif /* DISABLE_ESCAPE */
   }
   *(++ptag) = '\0';
+
+#ifndef DISABLE_ESCAPE
   *(++p_tag_esc) = '\0';
+#endif
 
   /* Start reply */
   /* Search tag */
@@ -95,7 +98,12 @@ static inline __attribute__((always_inline)) void session(int sock) {
   /* CSV: tag,lat,...
           ^ *p_db */
   /* Set index as next_tag_len to use for finding next index */
+#ifdef DISABLE_ESCAPE
+  int next_tag_len = GET_INDEX_KEY(tag_len, tag);
+#else
   int next_tag_len = GET_INDEX_KEY(tag_len, tag_esc);
+#endif
+
   char *p_db = index_g[next_tag_len++];
   char *p_input;
   char *p_end;
@@ -167,7 +175,12 @@ static inline __attribute__((always_inline)) void session(int sock) {
   reply_len = sprintf(buf,
                       HEADER_200 CRLF HEADER_CONTENT_TYPE MIME_JSON CRLF CRLF
                       "{" JSON_KEY_TAG ":\"%s\"," JSON_KEY_RESULTS ":[]}",
-                      tag_esc);
+#ifdef DISABLE_ESCAPE
+                      tag
+#else
+                      tag_esc
+#endif
+  );
   send(sock, buf, reply_len, SEND_FLAGS);
 
   /* End session */
