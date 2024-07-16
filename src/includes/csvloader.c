@@ -71,10 +71,16 @@ char **create_index(char *map, off_t file_size) {
       index[alt_index] = p;
     }
 
-    /* Skip to next line */
+/* Skip to next line */
+#ifdef USE_BINARY
     p += tag_len + 1;
     reply_len = *((uint_fast16_t *)p);
     p += sizeof(uint_fast16_t) + reply_len;
+#else
+    while (*(++p) != '\n')
+      ;
+    ++p;
+#endif
   }
 
   return index;
