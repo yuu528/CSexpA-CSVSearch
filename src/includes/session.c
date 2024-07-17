@@ -139,6 +139,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
       *url_id1, *id;
   int lat_len, lon_len, url_id1_len, id_len;
   char result_sep = ' ';
+  uint_fast8_t matched = 0;
 #endif
 
   if (p_db != NULL) {
@@ -167,8 +168,14 @@ static inline __attribute__((always_inline)) void session(int sock) {
 
       --p_db;
       while (*(++p_input) != '\0') {
+        // printf("%.*s ", tag_len, p_db + 1);
         if (*(++p_db) != *p_input) {
           /* Not matched */
+          if (matched == 1) {
+            goto finish;
+          }
+
+          // printf("no\n");
 #ifdef USE_BINARY
           while (*(++p_db) != ',')
             ;
@@ -182,6 +189,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
       }
 
       /* Matched */
+      // printf("yes\n");
 #ifdef USE_BINARY
       p_db += 2;
       reply_len = *((uint_fast16_t *)p_db);
@@ -190,6 +198,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
       TRY_SEND(sock, p_db, reply_len, SEND_FLAGS);
       FINISH_THREAD(sock);
 #else
+      matched = 1;
       /* Get lat */
       /* Current
        *     tag,lat,...
@@ -312,6 +321,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
   send(sock, buf, reply_len, SEND_FLAGS);
 #else /* USE_BINARY */
   /* Close json */
+finish:
 #ifdef USE_LARGE_BUFFER
   *p_buf = ']';
   *(++p_buf) = '}';
