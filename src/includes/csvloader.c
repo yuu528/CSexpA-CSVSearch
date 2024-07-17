@@ -54,6 +54,7 @@ char **create_index(char *map, off_t file_size) {
 
   char *p = map;
   char *end = map + file_size - 1;
+  char *p_last;
   uint_fast16_t tag_len = 0;
   uint_fast16_t reply_len = 0;
 
@@ -70,8 +71,9 @@ char **create_index(char *map, off_t file_size) {
     if (index[alt_index] == NULL) {
       index[alt_index] = p;
     }
+    p_last = p;
 
-/* Skip to next line */
+    /* Skip to next line */
 #ifdef USE_BINARY
     p += tag_len + 1;
     reply_len = *((uint_fast16_t *)p);
@@ -81,6 +83,15 @@ char **create_index(char *map, off_t file_size) {
       ;
     ++p;
 #endif
+  }
+
+  /* Pad index */
+  for (int i = INDEX_SIZE - 1; i >= 0; --i) {
+    if (index[i] == NULL) {
+      index[i] = p_last;
+    } else {
+      p_last = index[i];
+    }
   }
 
   return index;

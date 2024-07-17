@@ -130,7 +130,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
 
   char *p_db = index_g[next_tag_len++];
   char *p_input;
-  char *p_end;
+  char *p_end = index_g[next_tag_len];
 
 #ifdef USE_BINARY
   uint_fast16_t reply_len;
@@ -140,19 +140,6 @@ static inline __attribute__((always_inline)) void session(int sock) {
   int lat_len, lon_len, url_id1_len, id_len;
   char result_sep = ' ';
 #endif
-
-  /* find next index */
-  while (1) {
-    if (index_g[next_tag_len] != NULL) {
-      p_end = index_g[next_tag_len];
-      break;
-    }
-
-    if (++next_tag_len > MAX_TAG_LEN) {
-      p_end = map_end_g;
-      break;
-    }
-  }
 
   if (p_db != NULL) {
     do {
