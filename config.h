@@ -5,7 +5,8 @@
 #include <stdint.h>
 
 // #define MEASURE_TIME
-#define USE_BINARY
+// #define USE_BINARY
+// #define QUICK_INDEX
 
 /* Thread settings */
 #define PRE_THREAD

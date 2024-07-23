@@ -85,6 +85,7 @@ char **create_index(char *map, off_t file_size) {
 #endif
   }
 
+#ifdef QUICK_INDEX
   /* Pad index */
   for (int i = INDEX_SIZE - 1; i >= 0; --i) {
     if (index[i] == NULL) {
@@ -93,6 +94,7 @@ char **create_index(char *map, off_t file_size) {
       p_last = index[i];
     }
   }
+#endif
 
   return index;
 }
