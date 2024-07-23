@@ -46,8 +46,7 @@
 
 /* Length settings */
 #define MAX_TAG_LEN 370
-#define MAX_TAG_LEN_DECODED 285
-#define MAX_TAG_LEN_ESCAPED MAX_TAG_LEN_DECODED + 6
+#define MAX_TAG_LEN_ESCAPED MAX_TAG_LEN * 2
 #define MAX_GEOTAG_PER_TAG 100
 #define MAX_LAT_LON_LEN 16
 #define YEAR_LEN 4

@@ -122,11 +122,7 @@ static inline __attribute__((always_inline)) void session(int sock) {
   /* CSV: tag,lat,...
           ^ *p_db */
   /* Set index as next_tag_len to use for finding next index */
-#ifdef DISABLE_ESCAPE
   int next_tag_len = GET_INDEX_KEY(tag_len, tag);
-#else
-  int next_tag_len = GET_INDEX_KEY(tag_len, tag_esc);
-#endif
 
   char *p_db = index_g[next_tag_len++];
   char *p_input;
@@ -168,7 +164,6 @@ static inline __attribute__((always_inline)) void session(int sock) {
 
       --p_db;
       while (*(++p_input) != '\0') {
-        // printf("%.*s ", tag_len, p_db + 1);
         if (*(++p_db) != *p_input) {
           /* Not matched */
 #ifndef USE_BINARY
