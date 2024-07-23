@@ -171,9 +171,11 @@ static inline __attribute__((always_inline)) void session(int sock) {
         // printf("%.*s ", tag_len, p_db + 1);
         if (*(++p_db) != *p_input) {
           /* Not matched */
+#ifndef USE_BINARY
           if (matched == 1) {
             goto finish;
           }
+#endif
 
           // printf("no\n");
 #ifdef USE_BINARY
